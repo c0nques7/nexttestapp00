@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, FormEvent, ChangeEvent } from 'react';
 import { AtSymbolIcon, KeyIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline';
 import { ArrowRightIcon } from '@heroicons/react/20/solid';
 import { Button } from '../button';
@@ -12,9 +12,11 @@ export default function RegisterForm() {
   const [errors, setErrors] = useState({});
   const [apiError, setApiError] = useState(null);
 
-  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
   
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
     // Clear previous API errors on new submission
