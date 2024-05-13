@@ -6,11 +6,29 @@ import { Button } from '../button';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
+interface FormData {
+  username: string;
+  email: string;
+  password: string;
+}
+
+interface FormErrors {
+  username?: string;
+  email?: string;
+  password?: string;
+}
+
+type HandleSubmitType = (e: FormEvent<HTMLFormElement>) => void;
+
+const validateEmail = (email: string): boolean => {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+};
+
 export default function RegisterForm() {
   const router = useRouter();
   const [formData, setFormData] = useState({ username: '', email: '', password: '' });
-  const [errors, setErrors] = useState({});
   const [apiError, setApiError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<FormErrors>({});
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -46,16 +64,12 @@ export default function RegisterForm() {
   };
 
   // Client-Side Validation Logic
-  const validateForm = (data) => {
-    const errors = {};
+  const validateForm = (data: FormData) => {
+    const errors: Partial<FormData> = {};
     if (data.username.trim() === '') errors.username = 'Username is required';
     if (!validateEmail(data.email)) errors.email = 'Invalid email address';
     if (data.password.length < 6) errors.password = 'Password must be at least 6 characters';
     return errors;
-  };
-
-  const validateEmail = (email) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
 
   return (
@@ -148,16 +162,13 @@ export default function RegisterForm() {
   );
 }
 
-
-
-function RegisterButton({ handleSubmit }) {
+function RegisterButton({ handleSubmit }: { handleSubmit: HandleSubmitType }) {
   return (
     <Button 
       className="inline-flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md text-sm font-medium" 
-      onClick={handleSubmit} 
+      onClick={() => handleSubmit}
     >
       Register <ArrowRightIcon className="ml-auto h-5 w-5 text-gray-50" />
     </Button>
   );
 }
-
