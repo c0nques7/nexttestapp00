@@ -1,46 +1,62 @@
+// /app/api/login/route.ts
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import jwt from 'jsonwebtoken';
 
 interface LoginRequestBody {
-  identifier: string; // Can be either email or username
+  identifier: string;
   password: string;
 }
 
 const prisma = new PrismaClient();
+const JWT_SECRET = process.env.JWT_SECRET;
 
 export async function POST(request: NextRequest) {
   try {
     const { identifier, password } = await request.json() as LoginRequestBody;
 
-    // Basic Input Validation
+    // Input Validation (more thorough)
     if (!identifier || !password) {
-      return new Response(JSON.stringify({ error: 'Missing email/username or password' }), { status: 400 });
+      return new NextResponse("Missing credentials", { status: 400 }); 
+    } else if (identifier.length < 3 || password.length < 8) {
+      return new NextResponse("Invalid credentials", { status: 400 });
     }
 
     // Fetch User (allowing login with either email or username)
     const user = await prisma.site_users.findFirst({
       where: { OR: [{ email: identifier }, { username: identifier }] },
     });
+
     if (!user) {
-      return new Response(JSON.stringify({ error: 'Invalid credentials' }), { status: 401 }); // 401 Unauthorized
+      return new NextResponse("Invalid credentials", { status: 401 }); // Unauthorized
     }
 
     // Verify Password
     const passwordMatch = await bcrypt.compare(password, user.password);
     if (!passwordMatch) {
-      return new Response(JSON.stringify({ error: 'Invalid credentials' }), { status: 401 });
+      return new NextResponse("Invalid credentials", { status: 401 });
     }
 
-    // Successful Login (Consider implementing a session or JWT for authentication here)
-    return new Response(
-      JSON.stringify({ message: 'Login successful', user: { id: user.id, username: user.username } }),
-      { status: 200 }
-    );
+    // Generate JWT on Successful Login
+    const tokenPayload = { userId: user.id }; // Include user role if needed
+    const token = jwt.sign(tokenPayload, JWT_SECRET!, { expiresIn: '1h' }); // 1 hour (adjust)
 
+    // Set JWT as HTTP-only cookie (refined for better security)
+    const response = NextResponse.json({ message: 'Login successful', user: tokenPayload });
+    response.cookies.set('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 3600, // 1 hour
+      path: '/',
+    });
+
+    return response;
   } catch (error) {
     console.error('Login error:', error);
-    return new Response(JSON.stringify({ error: 'An error occurred during login' }), { status: 500 });
+    // Instead of PrismaClientKnownRequestError, handle general errors
+    return new NextResponse("Internal Server Error", { status: 500 });
   } finally {
     await prisma.$disconnect();
   }
