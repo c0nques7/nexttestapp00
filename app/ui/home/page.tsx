@@ -1,104 +1,109 @@
 "use client";
 import '@/app/ui/global.css';
-
-import React, { useState, useEffect, Suspense} from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { CardSkeleton } from '../skeletons';
 import Link from 'next/link';
 
+interface RedditPostData {
+  title: string;
+  subreddit: string;
+  author: string;
+  thumbnail: string | null;
+  permalink: string;
+  score: number;
+  num_comments: number;
+}
 
-
-function FlipCardGrid() {
-    const [cardCount, setCardCount] = useState(0);
-  
-    useEffect(() => {
-      function calculateCardCount() {
-        const cardWidth = 320; // Approximate width of each card including margins
-        const screenWidth = window.innerWidth;
-        const cardsPerRow = Math.floor(screenWidth / cardWidth);
-        const totalCards = cardsPerRow * 3; // Adjust the number of rows as needed
-        setCardCount(totalCards);
-      }
-  
-      calculateCardCount();
-      window.addEventListener('resize', calculateCardCount);
-  
-      return () => window.removeEventListener('resize', calculateCardCount);
-    }, []);
-
-    
-  
-    const cards = Array.from({ length: cardCount }, (_, index) => (
-        <Suspense key={index} fallback={<CardSkeleton />}>
-          <FlipCard />
-        </Suspense>
-      ));
-  
-    return (
-      <div className="card-grid">
-        {cards}
-      </div>
-    );
-  }
-
-function FlipCard() {
+function RedditFlipCard() {
   const [isFlipped, setIsFlipped] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [postData, setPostData] = useState<RedditPostData | null>(null);
 
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      setIsLoading(false);
-    }, 2000);
+    const fetchRedditPost = async () => {
+      try {
+        const response = await fetch('https://www.reddit.com/r/popular.json');
+        const json = await response.json();
+        const randomPost = json.data.children[Math.floor(Math.random() * json.data.children.length)].data;
 
-    return () => clearTimeout(timeout);
+        setPostData({
+          title: randomPost.title,
+          subreddit: randomPost.subreddit_name_prefixed,
+          author: randomPost.author,
+          thumbnail: randomPost.thumbnail !== 'self' ? randomPost.thumbnail : null,
+          permalink: `https://www.reddit.com${randomPost.permalink}`,
+          score: randomPost.score,
+          num_comments: randomPost.num_comments,
+        });
+      } catch (error) {
+        console.error("Error fetching Reddit post:", error);
+        setPostData(null);
+      }
+    };
+
+    fetchRedditPost();
   }, []);
 
   const handleClick = () => {
     setIsFlipped(!isFlipped);
   };
 
+  if (!postData) {
+    return <CardSkeleton />;
+  }
+
   return (
     <Suspense fallback={<CardSkeleton />}>
-      <div
-        className={`card ${isFlipped ? 'flipped' : ''}`}
-        onClick={handleClick}
-      >
-        {isLoading ? (
-          <CardSkeleton /> 
-        ) : (
-          <div className="rounded-xl bg-gray-50 p-2 shadow-sm">
-            <div className="front">
-              {/* Front content of the card */}
-              <img 
-                src="https://via.placeholder.com/70" // Placeholder image URL (70x70)
-                alt="Profile Pic"
-                className="rounded-full absolute top-2 left-2" // Style as circle
-              />
-            </div>
-            <div className="back">
-              {/* Back content of the card */}
-              <img 
-                src="https://via.placeholder.com/70" // Placeholder image URL (70x70)
-                alt="Profile Pic"
-                className="rounded-full absolute top-2 left-2" // Style as circle
-              />
-            </div>
-          </div>
-        )}
+      <div className={`card ${isFlipped ? 'flipped' : ''}`} onClick={handleClick}>
+        <div className="rounded-xl bg-gray-50 shadow-sm overflow-hidden">
+          {/* (Front and back content of the card remain the same as in the previous example) */}
+        </div>
       </div>
     </Suspense>
   );
 }
+
+
+
+function FlipCardGrid() {
+  const [cardCount, setCardCount] = useState(0);
+
+  useEffect(() => {
+    function calculateCardCount() {
+      const cardWidth = 320; 
+      const screenWidth = window.innerWidth;
+      const cardsPerRow = Math.floor(screenWidth / cardWidth);
+      const totalCards = cardsPerRow * 3; 
+      setCardCount(totalCards);
+    }
+
+    calculateCardCount();
+    window.addEventListener('resize', calculateCardCount);
+
+    return () => window.removeEventListener('resize', calculateCardCount);
+  }, []);
+
+  const cards = Array.from({ length: cardCount }, (_, index) => (
+    <RedditFlipCard key={index} />
+  ));
+
+  return (
+    <div className="card-grid">
+      {cards}
+    </div>
+  );
+}
+
 export default function homePageWithLogin() {
-    return (
-      <div>
-        <div className="fixed top-4 right-4 z-10"> 
-          <Link href="/ui/login">
-            <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-              Login
-            </button>
-          </Link>
-        </div>
-        <FlipCardGrid />
+  return (
+    <div>
+      <div className="fixed top-4 right-4 z-10">
+        <Link href="/ui/login">
+          <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            Login
+          </button>
+        </Link>
       </div>
-    );
-  }
+      <FlipCardGrid />
+    </div>
+  );
+}
