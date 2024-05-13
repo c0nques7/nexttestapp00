@@ -34,7 +34,7 @@ export default function RegisterForm() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
   
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit: React.FormEventHandler<HTMLFormElement> = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
     // Clear previous API errors on new submission
@@ -45,7 +45,7 @@ export default function RegisterForm() {
 
     if (Object.keys(validationErrors).length === 0) {
       try {
-        const response = await fetch('/api/register', {
+        const response = await fetch('/ui/api/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData),
