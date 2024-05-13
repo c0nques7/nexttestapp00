@@ -1,8 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
-import type { NextApiRequest, NextApiResponse } from 'next'; // Import types for req/res
-
-const prisma = new PrismaClient();
+import { NextApiRequest, NextApiResponse } from 'next';
+import { validateEmail } from '@/app/lib/utils'; 
 
 interface RegisterRequestBody {
   username: string;
@@ -10,66 +9,43 @@ interface RegisterRequestBody {
   password: string;
 }
 
-interface RegisterResponseBody {
-  error?: string;
-  message?: string;
-}
+const prisma = new PrismaClient();
 
-function validateEmail(email: string): boolean {
-  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return re.test(email);
-}
-
-export default async function handler(req: NextApiRequest, res: NextApiResponse<RegisterResponseBody>) {
-  if (req.method !== 'POST') {
-    return res.status(405).end(); // Method Not Allowed
-  }
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== 'POST') return res.status(405).end(); // Method Not Allowed
 
   try {
-    // 1. Extract and Validate Data (manually)
     const { username, email, password } = req.body as RegisterRequestBody;
 
-    if (!username || !email || !password) {
-      return res.status(400).json({ error: 'All fields are required' });
+    // Enhanced Input Validation
+    if (
+      !username || 
+      !email || 
+      !password || 
+      username.length < 3 ||  // Minimum username length of 3
+      password.length < 8 || // Minimum password length of 8 (industry best practice)
+      !validateEmail(email)
+    ) {
+      return res.status(400).json({ error: 'Invalid input data. Please check your username, email, and password.' });
     }
 
-    if (username.length < 1 || password.length < 6) {
-      return res.status(400).json({ error: 'Invalid username or password' }); // Simplified for brevity
-    }
-
-    if (!validateEmail(email)) { // assuming you have a validateEmail function
-      return res.status(400).json({ error: 'Invalid email address' });
-    }
-
-    // 2. Check for Existing User (using Prisma)
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
-    });
-
+    // Check for Existing User and Create New User (with upsert)
+    const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
       return res.status(409).json({ error: 'Email is already registered' });
     }
 
-    // 3. Hash Password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // 4. Create New User (using Prisma)
-    await prisma.user.create({
-      data: { username, email, password: hashedPassword },
-    });
-
+    const hashedPassword = await bcrypt.hash(password, 12); // 12 is a good work factor for bcrypt
+    await prisma.user.create({ data: { username, email, password: hashedPassword } });
+    
+    // Security: Don't expose details on successful registration
     res.status(201).json({ message: 'User registered successfully' });
   } catch (error) {
     console.error('Registration error:', error);
 
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === 'P2002') { // Unique constraint violation
-        return res.status(409).json({ error: 'Username or email already taken' });
-      }
-    }
-
-    res.status(500).json({ error: 'An error occurred during registration' });
+    // General Error Handling 
+    res.status(500).json({ error: 'An error occurred during registration. Please try again later.' }); 
   } finally {
-    await prisma.$disconnect(); // Important: Close Prisma connection
+    await prisma.$disconnect(); 
   }
 }
