@@ -52,7 +52,7 @@ export default function RegisterForm() {
         });
 
         if (response.ok) {
-          router.push('/login');  
+          router.push('/ui/login');  
         } else {
           const data = await response.json();
           setApiError(data.error || 'Registration failed.'); // Set specific API error
