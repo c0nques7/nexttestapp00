@@ -1,26 +1,59 @@
-import {
-  AtSymbolIcon,
-  KeyIcon,
-  ExclamationCircleIcon,
-} from '@heroicons/react/24/outline';
-import { ArrowRightIcon } from '@heroicons/react/20/solid';
+'use client';
+
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '../button';
 import Link from 'next/link';
+import { AtSymbolIcon, KeyIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline';
+import { ArrowRightIcon } from '@heroicons/react/20/solid';
 
+const LoginForm: React.FC = () => {
+  const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-export default function LoginForm() {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError(null); 
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('/ui/api/login', { // Ensure this is your correct API route
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identifier: email, password }),
+      });
+
+      if (response.ok) {
+        // Successful login
+        const data = await response.json();
+        console.log('Login successful:', data);
+
+        // Store user data (or JWT) in context or session storage 
+        // Redirect to dashboard or protected page
+        router.push('/ui/home'); 
+      } else {
+        const errorData = await response.json();
+        setError(errorData.error || 'Login failed. Please check your credentials.');
+      }
+    } catch (err) {
+      console.error('Login error:', err);
+      setError('An unexpected error occurred. Please try again later.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <form className="space-y-3">
+    <form className="space-y-3" onSubmit={handleSubmit}>
       <div className="flex-1 rounded-lg bg-gray-50 px-6 pb-4 pt-8">
-        <h1 className= "mb-3 text-2xl">
-          Please log in to continue.
-        </h1>
+        <h1 className="mb-3 text-2xl">Please log in to continue.</h1>
         <div className="w-full">
+          {/* Email Input */}
           <div>
-            <label
-              className="mb-3 mt-5 block text-xs font-medium text-gray-900"
-              htmlFor="email"
-            >
+            <label htmlFor="email" className="mb-3 mt-5 block text-xs font-medium text-gray-900">
               Email
             </label>
             <div className="relative">
@@ -30,16 +63,17 @@ export default function LoginForm() {
                 type="email"
                 name="email"
                 placeholder="Enter your email address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
               <AtSymbolIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
             </div>
           </div>
+
+          {/* Password Input */}
           <div className="mt-4">
-            <label
-              className="mb-3 mt-5 block text-xs font-medium text-gray-900"
-              htmlFor="password"
-            >
+            <label htmlFor="password" className="mb-3 block text-xs font-medium text-gray-900">
               Password
             </label>
             <div className="relative">
@@ -49,31 +83,40 @@ export default function LoginForm() {
                 type="password"
                 name="password"
                 placeholder="Enter password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 required
-                minLength={6}
+                minLength={6} 
               />
               <KeyIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
             </div>
           </div>
         </div>
-        <LoginButton />
+
+        {/* Error Message */}
         <div className="flex h-8 items-end space-x-1">
-          {/* Add form errors here */}
+          {error && (
+            <div className="flex items-center text-red-500">
+              <ExclamationCircleIcon className="mr-1 h-5 w-5" />
+              <p>{error}</p>
+            </div>
+          )}
         </div>
-      </div>
-      <div className="mt-4 text-center">
-  <Link href="/ui/register" className="text-sm font-medium text-gray-500 hover:text-gray-900">
-    Register here
-  </Link>
+        
+        {/* Login Button */}
+        <Button type="submit" className="mt-4 w-full" disabled={isLoading}>
+          {isLoading ? 'Logging in...' : 'Log in '} 
+          <ArrowRightIcon className="ml-auto h-5 w-5 text-gray-50" />
+        </Button>
+        
+        <div className="mt-4 text-center">
+    <Link href="/ui/register" className="text-sm font-medium text-gray-500 hover:text-gray-900">
+        Register here
+    </Link>
 </div>
+      </div>
     </form>
   );
-}
+};
 
-function LoginButton() {
-  return (
-    <Button className="mt-4 w-full">
-      Log in <ArrowRightIcon className="ml-auto h-5 w-5 text-gray-50" />
-    </Button>
-  );
-}
+export default LoginForm;
