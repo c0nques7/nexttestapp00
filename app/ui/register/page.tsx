@@ -10,7 +10,7 @@ export default function RegisterForm() {
   const router = useRouter();
   const [formData, setFormData] = useState({ username: '', email: '', password: '' });
   const [errors, setErrors] = useState({});
-  const [apiError, setApiError] = useState(null);
+  const [apiError, setApiError] = useState<string | null>(null);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
