@@ -1,5 +1,6 @@
+// app/page.tsx
 "use client";
-import '@/app/ui/global.css';
+import '@/app/ui/global.css'; 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 
@@ -21,6 +22,7 @@ function CardSkeleton() {
 
 function RedditFlipCard() {
   const [isFlipped, setIsFlipped] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [postData, setPostData] = useState<RedditPostData | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -42,7 +44,7 @@ function RedditFlipCard() {
         });
       } catch (error) {
         console.error("Error fetching Reddit post:", error);
-        setPostData(null);
+        setPostData(null); 
       }
     };
 
@@ -70,7 +72,7 @@ function RedditFlipCard() {
       const deltaY = finalY - initialY;
 
       if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) { 
-        setIsFlipped(deltaX < 0); 
+        setIsFlipped(!isExpanded && (deltaX < 0)); // Flip only if not expanded
       }
     };
 
@@ -91,7 +93,7 @@ function RedditFlipCard() {
       const deltaY = finalY - initialY;
 
       if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
-        setIsFlipped(deltaX < 0);
+        setIsFlipped(!isExpanded && (deltaX < 0)); // Flip only if not expanded
       }
     };
 
@@ -115,10 +117,19 @@ function RedditFlipCard() {
         cardElement.removeEventListener('mouseup', handleMouseUp);
       }
     };
-  }, []); 
+  }, [isExpanded]); 
+
+  const handleCardClick = () => {
+    setIsExpanded(!isExpanded);
+    setIsFlipped(false); // Reset flip state when expanding
+  };
 
   return (
-    <div ref={cardRef} className={`card relative ${isFlipped ? 'flipped' : ''}`}>
+    <div 
+      ref={cardRef} 
+      className={`card relative ${isFlipped ? 'flipped' : ''} ${isExpanded ? 'expanded' : ''}`} 
+      onClick={handleCardClick} 
+    >
       <div className="card-inner">
         {postData ? (
           <>
