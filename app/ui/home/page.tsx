@@ -183,6 +183,7 @@ function RedditFlipCard({ index, isExpanded, onClick, setIsExpanded }: { index: 
 function FlipCardGrid() {
   const [cardCount, setCardCount] = useState(3);
   const [expandedCardIndex, setExpandedCardIndex] = useState<number | null>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function calculateCardCount() {
@@ -198,20 +199,33 @@ function FlipCardGrid() {
     return () => window.removeEventListener('resize', calculateCardCount);
   }, []);
 
+  useEffect(() => {
+    if (gridRef.current) {
+      const cards = Array.from({ length: cardCount }, (_, index) => (
+        <RedditFlipCard
+          key={index}
+          index={index}
+          isExpanded={expandedCardIndex === index}
+          onClick={() => handleCardClick(index)}
+          setIsExpanded={setExpandedCardIndex}
+        />
+      ));
+
+      gridRef.current.innerHTML = ReactDOMServer.renderToString(<>{cards}</>); 
+    }
+  }, [cardCount, expandedCardIndex]);
+
   const handleCardClick = (index: number) => {
     setExpandedCardIndex(prevIndex => (prevIndex === index ? null : index));
   };
 
-  const cards = Array.from({ length: cardCount }, (_, index) => (
-    <RedditFlipCard key={index} index={index} isExpanded={expandedCardIndex === index} onClick={() => handleCardClick(index)} setIsExpanded={setExpandedCardIndex} /> 
-  ));
-
   return (
-    <div className="card-grid">
-      {cards}
+    <div className="card-grid" ref={gridRef}>
+      {/* Cards will be rendered here dynamically */}
     </div>
   );
 }
+
 
 export default function HomePageWithLogin() {
   return (
