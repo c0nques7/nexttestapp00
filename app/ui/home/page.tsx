@@ -1,5 +1,6 @@
+// app/page.tsx
 "use client";
-import '@/app/ui/global.css';
+import '@/app/ui/global.css'; // Replace with your global CSS file path
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 
@@ -13,9 +14,10 @@ interface RedditPostData {
   num_comments: number;
 }
 
+// Placeholder Skeleton Component
 function CardSkeleton() {
   return (
-    <div className="rounded-xl bg-gray-200 h-64 animate-pulse"></div> 
+    <div className="rounded-xl bg-gray-200 h-64 animate-pulse"></div>
   );
 }
 
