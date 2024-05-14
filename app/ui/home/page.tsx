@@ -1,6 +1,5 @@
 // app/page.tsx
 "use client";
-import '@/app/ui/global.css';  
 import React, { useState, useEffect, Suspense, useRef } from 'react';
 import Link from 'next/link';
 
@@ -17,7 +16,7 @@ interface RedditPostData {
 // Placeholder Skeleton Component
 function CardSkeleton() {
   return (
-    <div className="rounded-xl bg-gray-200 h-64 animate-pulse"></div>
+    <div className="rounded-xl bg-gray-200 h-64 animate-pulse"></div> 
   );
 }
 
@@ -44,7 +43,7 @@ function RedditFlipCard() {
         });
       } catch (error) {
         console.error("Error fetching Reddit post:", error);
-        setPostData(null); // Set postData to null in case of an error
+        setPostData(null);
       }
     };
 
@@ -61,7 +60,7 @@ function RedditFlipCard() {
     };
 
     const handleTouchMove = (event: TouchEvent) => {
-      event.preventDefault(); // Prevent scrolling
+      event.preventDefault();
     };
 
     const handleTouchEnd = (event: TouchEvent) => {
@@ -122,42 +121,44 @@ function RedditFlipCard() {
     
 
   return (
-    <Suspense fallback={<CardSkeleton />}>
-      <div ref={cardRef} className={`card ${isFlipped ? 'flipped' : ''}`} >
-        <div className="rounded-xl bg-gray-50 shadow-sm overflow-hidden">
-          {/* Front of the Card */}
-          <div className="front absolute w-full h-full">
-            {postData.thumbnail && (
-              <img src={postData.thumbnail} alt={postData.title} className="w-full h-full object-cover rounded-t-xl" />
-            )}
-            <div className="absolute bottom-0 left-0 right-0 p-2 bg-black bg-opacity-50 text-white rounded-b-xl">
-              <h3 className="font-semibold text-lg line-clamp-2">{postData.title}</h3>
-              <p className="text-sm">r/{postData.subreddit} by u/{postData.author}</p>
+    <div ref={cardRef} className={`card relative ${isFlipped ? 'flipped' : ''}`}>
+      <div className="card-inner">
+        {postData ? (
+          <>
+            {/* Front of the Card */}
+            <div className="front absolute w-full h-full">
+              {postData.thumbnail && (
+                <img src={postData.thumbnail} alt={postData.title} className="w-full h-full object-cover rounded-t-xl" />
+              )}
+              <div className="absolute bottom-0 left-0 right-0 p-2 bg-black bg-opacity-50 text-white rounded-b-xl">
+                <h3 className="font-semibold text-lg line-clamp-2">{postData.title}</h3>
+                <p className="text-sm">r/{postData.subreddit} by u/{postData.author}</p>
+              </div>
             </div>
-          </div>
 
-          {/* Back of the Card */}
-          <div className="back absolute w-full h-full p-4 rounded-xl">
-            <p className="text-sm mb-2">
-              <span className="font-semibold">Score:</span> {postData.score} | 
-              <span className="font-semibold">Comments:</span> {postData.num_comments}
-            </p>
-            <a
-              href={postData.permalink}
-              target="_blank"
-              rel="noreferrer"
-              className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-300"
-            >
-              View on Reddit
-            </a>
+            {/* Back of the Card */}
+            <div className="back absolute w-full h-full p-4 rounded-xl">
+              <p className="text-sm mb-2">
+                <span className="font-semibold">Score:</span> {postData.score} | 
+                <span className="font-semibold">Comments:</span> {postData.num_comments}
+              </p>
+              <a
+                href={postData.permalink}
+                target="_blank"
+                rel="noreferrer"
+                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-300"
+              >
+                View on Reddit
+              </a>
             </div>
-          </div>
+          </>
+        ) : (
+          <CardSkeleton />
+        )}
       </div>
-    </Suspense>
+    </div>
   );
 }
-
-
 
 function FlipCardGrid() {
   const [cardCount, setCardCount] = useState(0);
@@ -176,6 +177,7 @@ function FlipCardGrid() {
 
     return () => window.removeEventListener('resize', calculateCardCount);
   }, []);
+
 
   const cards = Array.from({ length: cardCount }, (_, index) => (
     <RedditFlipCard key={index} />
