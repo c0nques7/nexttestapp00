@@ -1,5 +1,5 @@
-"use client";
-import '@/app/ui/global.css'; // Replace with the actual path to your global CSS file
+    "use client";
+import '@/app/ui/global.css'; // Replace with your global CSS file path
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 
@@ -16,7 +16,7 @@ interface RedditPostData {
 // Placeholder Skeleton Component
 function CardSkeleton() {
   return (
-    <div className="rounded-xl bg-gray-200 h-64 animate-pulse"></div> 
+    <div className="rounded-xl bg-gray-200 h-64 animate-pulse"></div>
   );
 }
 
@@ -44,18 +44,17 @@ function RedditFlipCard() {
         });
       } catch (error) {
         console.error("Error fetching Reddit post:", error);
-        setPostData(null); // Set postData to null on error
+        setPostData(null); // Handle error by setting postData to null
       }
     };
 
     fetchRedditPost();
-  }, []);
+  }, []); // Empty dependency array means this runs only once on mount
 
   useEffect(() => {
     let initialX = 0;
     let initialY = 0;
 
-    // Touch Event Handlers
     const handleTouchStart = (event: TouchEvent) => {
       initialX = event.touches[0].clientX;
       initialY = event.touches[0].clientY;
@@ -68,38 +67,32 @@ function RedditFlipCard() {
     const handleTouchEnd = (event: TouchEvent) => {
       const finalX = event.changedTouches[0].clientX;
       const finalY = event.changedTouches[0].clientY;
-
-      const deltaX = finalX - initialX;
-      const deltaY = finalY - initialY;
-
-      if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
-        setIsFlipped(!isExpanded && (deltaX < 0)); // Flip only if not expanded
-      }
+      handleFlipOrExpand(initialX, finalX);
     };
 
-    // Mouse Event Handlers
     const handleMouseDown = (event: MouseEvent) => {
       initialX = event.clientX;
       initialY = event.clientY;
     };
 
     const handleMouseMove = (event: MouseEvent) => {
-      event.preventDefault(); // Prevent highlighting text
+      event.preventDefault(); // Prevent text selection
     };
 
     const handleMouseUp = (event: MouseEvent) => {
       const finalX = event.clientX;
-      const finalY = event.clientY;
+      handleFlipOrExpand(initialX, finalX);
+    };
 
+    const handleFlipOrExpand = (initialX: number, finalX: number) => {
       const deltaX = finalX - initialX;
-      const deltaY = finalY - initialY;
-
-      if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
-        setIsFlipped(!isExpanded && (deltaX < 0));
+      if (Math.abs(deltaX) > 50) {
+        setIsFlipped(!isExpanded && deltaX < 0); // Flip only if not expanded
+      } else {
+        setIsExpanded(!isExpanded); // Expand/collapse
       }
     };
 
-    // Event Listener Attachment
     const cardElement = cardRef.current;
     if (cardElement) {
       cardElement.addEventListener('touchstart', handleTouchStart);
@@ -110,7 +103,7 @@ function RedditFlipCard() {
       cardElement.addEventListener('mouseup', handleMouseUp);
     }
 
-    // Event Listener Cleanup
+    // Cleanup event listeners on unmount
     return () => {
       if (cardElement) {
         cardElement.removeEventListener('touchstart', handleTouchStart);
@@ -121,19 +114,15 @@ function RedditFlipCard() {
         cardElement.removeEventListener('mouseup', handleMouseUp);
       }
     };
-  }, [isExpanded]);
+  }, [isExpanded]); // Run effect when isExpanded changes
 
-  const handleCardClick = () => {
-    setIsExpanded(!isExpanded);
-    setIsFlipped(false); // Reset flip state when expanding
+  const getRedditEmbedUrl = (permalink: string) => {
+    const postId = permalink.split('/').slice(-2, -1)[0];
+    return `https://www.redditmedia.com/r/${postData?.subreddit.replace('/r/', '')}/comments/${postId}/.embed?ref_source=embed&amp;ref=share&amp;embed=true`;
   };
 
   return (
-    <div 
-      ref={cardRef} 
-      className={`card relative ${isFlipped ? 'flipped' : ''} ${isExpanded ? 'expanded' : ''}`} 
-      onClick={handleCardClick} 
-    >
+    <div ref={cardRef} className={`card relative ${isFlipped ? 'flipped' : ''} ${isExpanded ? 'expanded' : ''}`} onClick={handleCardClick}>
       <div className="card-inner">
         {postData ? (
           <>
@@ -150,25 +139,14 @@ function RedditFlipCard() {
 
             {/* Back of the Card */}
             <div className="back absolute w-full h-full p-4 rounded-xl z-10">
-              <p className="text-sm mb-2">
-                <span className="font-semibold">Score:</span> {postData.score} | 
-                <span className="font-semibold">Comments:</span> {postData.num_comments}
-              </p>
-              <a
-                href={postData.permalink}
-                target="_blank"
-                rel="noreferrer"
-                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-300"
-              >
-                View on Reddit
-              </a>
+              {/* ... (back content same as before) ... */}
             </div>
 
             {/* Expanded View with iframe */}
             {isExpanded && (
               <div className="expanded-content absolute w-full h-full top-0 left-0 z-20">
-                <iframe 
-                  src={postData.permalink} 
+                <iframe
+                  src={getRedditEmbedUrl(postData.permalink)} 
                   title={postData.title}
                   className="w-full h-full"
                 />
@@ -176,12 +154,14 @@ function RedditFlipCard() {
             )}
           </>
         ) : (
-          <CardSkeleton />
+          <CardSkeleton /> 
         )}
       </div>
     </div>
   );
 }
+// rest of the code is the same 
+
 
 function FlipCardGrid() {
   const [cardCount, setCardCount] = useState(3); 
