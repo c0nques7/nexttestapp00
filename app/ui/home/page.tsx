@@ -1,6 +1,5 @@
-// app/page.tsx
 "use client";
-import '@/app/ui/global.css'; 
+import '@/app/ui/global.css'; // Replace with the actual path to your global CSS file
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 
@@ -14,6 +13,7 @@ interface RedditPostData {
   num_comments: number;
 }
 
+// Placeholder Skeleton Component
 function CardSkeleton() {
   return (
     <div className="rounded-xl bg-gray-200 h-64 animate-pulse"></div> 
@@ -44,7 +44,7 @@ function RedditFlipCard() {
         });
       } catch (error) {
         console.error("Error fetching Reddit post:", error);
-        setPostData(null); 
+        setPostData(null); // Set postData to null on error
       }
     };
 
@@ -55,13 +55,14 @@ function RedditFlipCard() {
     let initialX = 0;
     let initialY = 0;
 
+    // Touch Event Handlers
     const handleTouchStart = (event: TouchEvent) => {
       initialX = event.touches[0].clientX;
       initialY = event.touches[0].clientY;
     };
 
     const handleTouchMove = (event: TouchEvent) => {
-      event.preventDefault(); 
+      event.preventDefault(); // Prevent scrolling
     };
 
     const handleTouchEnd = (event: TouchEvent) => {
@@ -71,18 +72,19 @@ function RedditFlipCard() {
       const deltaX = finalX - initialX;
       const deltaY = finalY - initialY;
 
-      if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) { 
+      if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
         setIsFlipped(!isExpanded && (deltaX < 0)); // Flip only if not expanded
       }
     };
 
+    // Mouse Event Handlers
     const handleMouseDown = (event: MouseEvent) => {
       initialX = event.clientX;
       initialY = event.clientY;
     };
 
     const handleMouseMove = (event: MouseEvent) => {
-      event.preventDefault();
+      event.preventDefault(); // Prevent highlighting text
     };
 
     const handleMouseUp = (event: MouseEvent) => {
@@ -93,10 +95,11 @@ function RedditFlipCard() {
       const deltaY = finalY - initialY;
 
       if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
-        setIsFlipped(!isExpanded && (deltaX < 0)); // Flip only if not expanded
+        setIsFlipped(!isExpanded && (deltaX < 0));
       }
     };
 
+    // Event Listener Attachment
     const cardElement = cardRef.current;
     if (cardElement) {
       cardElement.addEventListener('touchstart', handleTouchStart);
@@ -107,6 +110,7 @@ function RedditFlipCard() {
       cardElement.addEventListener('mouseup', handleMouseUp);
     }
 
+    // Event Listener Cleanup
     return () => {
       if (cardElement) {
         cardElement.removeEventListener('touchstart', handleTouchStart);
@@ -117,7 +121,7 @@ function RedditFlipCard() {
         cardElement.removeEventListener('mouseup', handleMouseUp);
       }
     };
-  }, [isExpanded]); 
+  }, [isExpanded]);
 
   const handleCardClick = () => {
     setIsExpanded(!isExpanded);
@@ -133,6 +137,7 @@ function RedditFlipCard() {
       <div className="card-inner">
         {postData ? (
           <>
+            {/* Front of the Card */}
             <div className="front absolute w-full h-full">
               {postData.thumbnail && (
                 <img src={postData.thumbnail} alt={postData.title} className="w-full h-full object-cover rounded-t-xl" />
@@ -143,6 +148,7 @@ function RedditFlipCard() {
               </div>
             </div>
 
+            {/* Back of the Card */}
             <div className="back absolute w-full h-full p-4 rounded-xl z-10">
               <p className="text-sm mb-2">
                 <span className="font-semibold">Score:</span> {postData.score} | 
@@ -157,6 +163,17 @@ function RedditFlipCard() {
                 View on Reddit
               </a>
             </div>
+
+            {/* Expanded View with iframe */}
+            {isExpanded && (
+              <div className="expanded-content absolute w-full h-full top-0 left-0 z-20">
+                <iframe 
+                  src={postData.permalink} 
+                  title={postData.title}
+                  className="w-full h-full"
+                />
+              </div>
+            )}
           </>
         ) : (
           <CardSkeleton />
