@@ -1,5 +1,6 @@
 // app/page.tsx
 "use client";
+import '@/app/ui/global.css'; // Replace with actual path
 import React, { useState, useEffect, Suspense, useRef } from 'react';
 import Link from 'next/link';
 
@@ -16,7 +17,7 @@ interface RedditPostData {
 // Placeholder Skeleton Component
 function CardSkeleton() {
   return (
-    <div className="rounded-xl bg-gray-200 h-64 animate-pulse"></div> 
+    <div className="rounded-xl bg-gray-200 h-64 animate-pulse"></div>
   );
 }
 
@@ -30,20 +31,20 @@ function RedditFlipCard() {
       try {
         const response = await fetch('https://www.reddit.com/r/popular.json');
         const json = await response.json();
-        const randomPost = json.data.children[Math.floor(Math.random() * json.data.children.length)].data;
+        const randomPost =
+          json.data.children[Math.floor(Math.random() * json.data.children.length)].data;
 
         setPostData({
           title: randomPost.title,
           subreddit: randomPost.subreddit_name_prefixed,
           author: randomPost.author,
-          thumbnail: randomPost.thumbnail !== 'self' ? randomPost.thumbnail : null,
+          thumbnail: randomPost.thumbnail !== 'self' && randomPost.thumbnail !== 'default' ? randomPost.thumbnail : null,
           permalink: `https://www.reddit.com${randomPost.permalink}`,
           score: randomPost.score,
           num_comments: randomPost.num_comments,
         });
       } catch (error) {
         console.error("Error fetching Reddit post:", error);
-        setPostData(null);
       }
     };
 
@@ -116,12 +117,14 @@ function RedditFlipCard() {
         cardElement.removeEventListener('mouseup', handleMouseUp);
       }
     };
-  }, [isFlipped]);
-    
-    
+  }, [isFlipped]); // Include isFlipped in dependency array
+
+  if (!postData) {
+    return <CardSkeleton />;
+  }
 
   return (
-    <div ref={cardRef} className={`card relative ${isFlipped ? 'flipped' : ''}`}>
+    <div ref={cardRef} className={`card relative ${isFlipped ? 'flipped' : ''}`} >
       <div className="card-inner">
         {postData ? (
           <>
