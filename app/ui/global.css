@@ -35,6 +35,14 @@ input[type='number']::-webkit-outer-spin-button {
   transform-style: preserve-3d;
 }
 
+.card-inner {
+position: relative;
+width: 100%;
+height: 100%;
+transition: transform 0.8s;
+transform-style: preserve-3d;
+}
+
 .card .front {
   background-color: lightblue;
   box-shadow: 
@@ -63,7 +71,28 @@ input[type='number']::-webkit-outer-spin-button {
 
 /* Card grid styling */
 .card-grid {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+  display: grid;
+  grid-template-columns:
+repeat(auto-fit, minmax(300px, 1fr));
+  grid-gap: 20px;
+  padding: 20px;
+}
+
+.card.flipped .card-inner {
+transform: rotateY(180deg);
+}
+
+.animate-pulse {
+  animation: pulse 2s
+cubic-bezier(0.4, 0, 0.6, 1)
+infinite;
+}
+
+@keyframes pulse {
+0, 100% {
+  opacity: 1;
+  }
+  50% {
+opacity: 0.5;
+  }
 }
