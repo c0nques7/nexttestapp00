@@ -1,5 +1,5 @@
 "use client";
-import '@/app/ui/global.css'; // Replace with your global CSS file path
+import '@/app/ui/global.css'; 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 
@@ -16,11 +16,11 @@ interface RedditPostData {
 // Placeholder Skeleton Component
 function CardSkeleton() {
   return (
-    <div className="rounded-xl bg-gray-200 h-64 animate-pulse"></div>
+    <div className="rounded-xl bg-gray-200 h-64 animate-pulse"></div> 
   );
 }
 
-function RedditFlipCard({ isExpanded, onClick }: { isExpanded: boolean; onClick: () => void }) {
+function RedditFlipCard({ isExpanded, onClick, setIsExpanded }: { isExpanded: boolean; onClick: () => void; setIsExpanded: (isExpanded: boolean) => void }) {
   const [isFlipped, setIsFlipped] = useState(false);
   const [postData, setPostData] = useState<RedditPostData | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -94,6 +94,7 @@ function RedditFlipCard({ isExpanded, onClick }: { isExpanded: boolean; onClick:
         setIsFlipped(!isExpanded && deltaX < 0); // Flip only if not expanded
       } else {
         setIsExpanded(!isExpanded); // Expand/collapse
+        onClick(); // Notify the parent about the click
       }
     };
 
@@ -128,7 +129,7 @@ function RedditFlipCard({ isExpanded, onClick }: { isExpanded: boolean; onClick:
   };
 
   return (
-    <div ref={cardRef} className={`card relative ${isFlipped ? 'flipped' : ''} ${isExpanded ? 'expanded' : ''}`} onClick={onClick}>
+    <div ref={cardRef} className={`card relative ${isFlipped ? 'flipped' : ''} ${isExpanded ? 'expanded' : ''}`}>
       <div className="card-inner">
         {postData ? (
           <>
@@ -177,6 +178,7 @@ function RedditFlipCard({ isExpanded, onClick }: { isExpanded: boolean; onClick:
     </div>
   );
 }
+// rest of the code is the same as before
 
 function FlipCardGrid() {
   const [cardCount, setCardCount] = useState(3);
@@ -197,11 +199,11 @@ function FlipCardGrid() {
   }, []);
 
   const handleCardClick = (index: number) => {
-    setExpandedCardIndex(isExpanded ? null : index);
+    setExpandedCardIndex(prevIndex => (prevIndex === index ? null : index));
   };
 
   const cards = Array.from({ length: cardCount }, (_, index) => (
-    <RedditFlipCard key={index} isExpanded={expandedCardIndex === index} onClick={() => handleCardClick(index)} />
+    <RedditFlipCard key={index} isExpanded={expandedCardIndex === index} onClick={() => handleCardClick(index)} setIsExpanded={setExpandedCardIndex} /> 
   ));
 
   return (
