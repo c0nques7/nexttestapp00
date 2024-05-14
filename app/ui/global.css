@@ -1,3 +1,4 @@
+/* app/ui/global.css */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -5,7 +6,7 @@
 /* Input Number Styling */
 input[type="number"] {
   -moz-appearance: textfield; /* Firefox */
-  appearance: textfield; /* Other browsers */
+  appearance: textfield;      /* Other browsers */
 }
 
 input[type="number"]::-webkit-inner-spin-button,
@@ -14,12 +15,20 @@ input[type="number"]::-webkit-outer-spin-button {
   margin: 0;
 }
 
-/* Basic Card Styles */
+/* Card Grid */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+/* Card Container */
 .card {
-  perspective: 1000px; /* Required for 3D effect */
-  width: 300px; /* Adjust card width as needed */
-  height:350px; /* Adjust Height as needed */
-  cursor: pointable;   /* Indicate card is grab-able */
+  /* perspective: 1000px;  Removed as it's not needed for expansion */
+  width: 100%;
+  height: 350px; 
+  cursor: pointer;
+  transition: transform 0.3s ease, grid-column 0.3s ease;
 }
 
 .card-inner {
@@ -30,27 +39,46 @@ input[type="number"]::-webkit-outer-spin-button {
   transform-style: preserve-3d;
 }
 
-.card.flipped .card-inner {
-  transform: rotateY(180deg);
-}
-
-.front,
-.back {
+/* Front and Back of Card (Shared Styles) */
+.front, .back {
   position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
+  backface-visibility: hidden; /* Hide the back face when not flipped (if you re-add it) */
+  border-radius: 15px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
+
 
 /* Card Front Styling */
 .front {
-  background-color: #f0f0f0; /* Light gray background */
-  border-radius: 15px;  /* Rounded corners */
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-  z-index: 2; /* Ensure front is above back */
+  width: 100%;
+  height: 100%;
+  background-color: #f0f0f0;
+  border-radius: 15px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   overflow: hidden;
 }
+
+.front img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Ensure the image covers the container */
+  border-radius: 15px 15px 0 0; /* Rounded top corners for image */
+}
+
+.front .absolute { /* Styles for the text overlay on the front */
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 0.5rem 1rem;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  border-radius: 0 0 15px 15px; /* Rounded bottom corners for text overlay */
+}
+
 
 .front h3 {
   font-size: 1.2rem;
@@ -63,29 +91,33 @@ input[type="number"]::-webkit-outer-spin-button {
   color: #555;
 }
 
+
 /* Card Back Styling */
 .back {
-  background-color: #fff; /* White background */
-  transform: rotateY(180deg); /* Initially hidden */
-  padding: 1rem;
+  background-color: #fff; 
+  transform: rotateY(180deg);
   border-radius: 15px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  height: 100%;
+  display: flex; /* Use flexbox for layout */
+  flex-direction: column; /* Stack items vertically */
+  justify-content: space-between; /* Distribute space between items */
 }
 
-/* Text styles on the back of the card */
 .back p {
   font-size: 0.9rem;
   margin-bottom: 0.5rem;
 }
 .back .font-semibold {
-  font-weight: 600; /* Slightly bolder font for score and comments */
+  font-weight: 600; 
 }
 
 /* Link button style */
 .back a {
-  display: block; /* Make it take up full width */
+  display: block; 
   text-align: center;
-  background-color: #007bff; /* Blue background */
+  background-color: #007bff; 
   color: white;
   padding: 0.5rem 1rem;
   border-radius: 5px;
@@ -94,17 +126,29 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 
 .back a:hover {
-  background-color: #0056b3; /* Darker blue on hover */
+  background-color: #0056b3; 
 }
 
 
-.card-grid {
-  display: flex; /* or grid */
-  flex-wrap: wrap; /* or grid-template-columns if using grid */
-  gap: 1rem; /* Adjust spacing as needed */
-  justify-content: center; /* Optional: Center cards horizontally */
+/* Expanded Card Styles */
+.card.expanded .card-inner { 
+  grid-column: span 3;  
+  z-index: 10;          /* Updated z-index for expanded card */
 }
 
+.expanded-content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 1rem;
+  z-index: 10;        /* Updated z-index to keep it on top of the card */
+}
+
+.expanded-content a {
+  color: #007bff;
+  text-decoration: underline;
+}
 
 /* Skeleton Loading Styles */
 .animate-pulse {
@@ -119,53 +163,3 @@ input[type="number"]::-webkit-outer-spin-button {
     opacity: 0.5;
   }
 }
-
-/* Styles for expanded card */
-.card.expanded {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 100;
-  background-color: rgba(0, 0, 0, 0.8); /* Dimmed background */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.card.expanded .card-inner {
-  width: 80%;
-  max-width: 600px;
-  height: auto;  
-  transform: none; 
-  background-color: white; 
-  padding: 20px; 
-  border-radius: 8px; 
-}
-
-.card.expanded .front,
-.card.expanded .back {
-  position: relative; 
-  height: auto;
-  width: 100%;
-  transform: none;
-}
-
-/* Additional styling for content in expanded mode */
-.card.expanded img {
-  max-width: 100%;
-  height: auto;
-  margin-bottom: 1rem;
-}
-
-.card.expanded h3, 
-.card.expanded p {
-  color: black; 
-}
-
-.card.expanded .expanded-content {
-  background-color: white; /* Optional background for the expanded content */
-}
-
-
