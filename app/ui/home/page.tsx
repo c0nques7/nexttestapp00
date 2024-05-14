@@ -161,34 +161,29 @@ function RedditFlipCard() {
 }
 
 function FlipCardGrid() {
-  const [cardCount, setCardCount] = useState(0);
+  const [cardCount, setCardCount] = useState(3); // Initial cards (adjust as needed)
 
   useEffect(() => {
-    function calculateCardCount() {
-      const cardWidth = 320;
+    const calculateCardCount = () => {
+      const cardWidth = 320; // Approximate width including margins
       const screenWidth = window.innerWidth;
       const cardsPerRow = Math.floor(screenWidth / cardWidth);
-      const totalCards = cardsPerRow * 3;
+      const totalCards = cardsPerRow * 3; // 3 rows of cards
       setCardCount(totalCards);
-    }
+    };
 
     calculateCardCount();
     window.addEventListener('resize', calculateCardCount);
-
     return () => window.removeEventListener('resize', calculateCardCount);
   }, []);
-
 
   const cards = Array.from({ length: cardCount }, (_, index) => (
     <RedditFlipCard key={index} />
   ));
 
-  return (
-    <div className="card-grid">
-      {cards}
-    </div>
-  );
+  return <div className="card-grid">{cards}</div>;
 }
+
 
 export default function HomePageWithLogin() {
   return (
