@@ -1,6 +1,5 @@
-// app/page.tsx
 "use client";
-import '@/app/ui/global.css'; // Replace with the actual path to your global CSS file
+import '@/app/ui/global.css';
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 
@@ -14,7 +13,6 @@ interface RedditPostData {
   num_comments: number;
 }
 
-// Placeholder Skeleton Component
 function CardSkeleton() {
   return (
     <div className="rounded-xl bg-gray-200 h-64 animate-pulse"></div> 
@@ -44,7 +42,7 @@ function RedditFlipCard() {
         });
       } catch (error) {
         console.error("Error fetching Reddit post:", error);
-        setPostData(null); 
+        setPostData(null);
       }
     };
 
@@ -61,7 +59,7 @@ function RedditFlipCard() {
     };
 
     const handleTouchMove = (event: TouchEvent) => {
-      event.preventDefault(); // Prevent scrolling
+      event.preventDefault(); 
     };
 
     const handleTouchEnd = (event: TouchEvent) => {
@@ -72,7 +70,7 @@ function RedditFlipCard() {
       const deltaY = finalY - initialY;
 
       if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) { 
-        setIsFlipped(deltaX < 0); // Flip if swipe is to the left
+        setIsFlipped(deltaX < 0); 
       }
     };
 
@@ -117,14 +115,13 @@ function RedditFlipCard() {
         cardElement.removeEventListener('mouseup', handleMouseUp);
       }
     };
-  }, [isFlipped]); // Include isFlipped in dependency array
+  }, []); 
 
   return (
-    <div ref={cardRef} className={`card relative ${isFlipped ? 'flipped' : ''}`} >
+    <div ref={cardRef} className={`card relative ${isFlipped ? 'flipped' : ''}`}>
       <div className="card-inner">
         {postData ? (
           <>
-            {/* Front of the Card */}
             <div className="front absolute w-full h-full">
               {postData.thumbnail && (
                 <img src={postData.thumbnail} alt={postData.title} className="w-full h-full object-cover rounded-t-xl" />
@@ -135,7 +132,6 @@ function RedditFlipCard() {
               </div>
             </div>
 
-            {/* Back of the Card */}
             <div className="back absolute w-full h-full p-4 rounded-xl z-10">
               <p className="text-sm mb-2">
                 <span className="font-semibold">Score:</span> {postData.score} | 
@@ -159,17 +155,15 @@ function RedditFlipCard() {
   );
 }
 
-
-
 function FlipCardGrid() {
-  const [cardCount, setCardCount] = useState(3); // Initial cards (adjust as needed)
+  const [cardCount, setCardCount] = useState(3); 
 
   useEffect(() => {
     function calculateCardCount() {
-      const cardWidth = 320; // Approximate width including margins
+      const cardWidth = 320; 
       const screenWidth = window.innerWidth;
       const cardsPerRow = Math.floor(screenWidth / cardWidth);
-      const totalCards = cardsPerRow * 3; // 3 rows of cards
+      const totalCards = cardsPerRow * 3; 
       setCardCount(totalCards);
     }
 
