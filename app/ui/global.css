@@ -19,14 +19,14 @@ input[type="number"]::-webkit-outer-spin-button {
   perspective: 1000px; /* Required for 3D effect */
   width: 300px; /* Adjust card width as needed */
   height:350px; /* Adjust Height as needed */
-  cursor: grab;   /* Indicate card is grab-able */
+  cursor: pointable;   /* Indicate card is grab-able */
 }
 
 .card-inner {
   position: relative;
   width: 100%;
   height: 100%;
-  transition: transform 0.5s ease-in-out; /* Smoother transition on flip */
+  transition: transform 0.5s;
   transform-style: preserve-3d;
 }
 
@@ -119,3 +119,48 @@ input[type="number"]::-webkit-outer-spin-button {
     opacity: 0.5;
   }
 }
+
+/* Styles for expanded card */
+.card.expanded {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 100;
+  background-color: rgba(0, 0, 0, 0.8); /* Dimmed background */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card.expanded .card-inner {
+  width: 80%;
+  max-width: 600px;
+  height: auto;  
+  transform: none; 
+  background-color: white; 
+  padding: 20px; 
+  border-radius: 8px; 
+}
+
+.card.expanded .front,
+.card.expanded .back {
+  position: relative; 
+  height: auto;
+  width: 100%;
+  transform: none;
+}
+
+/* Additional styling for content in expanded mode */
+.card.expanded img {
+  max-width: 100%;
+  height: auto;
+  margin-bottom: 1rem;
+}
+
+.card.expanded h3, 
+.card.expanded p {
+  color: black; 
+}
+
