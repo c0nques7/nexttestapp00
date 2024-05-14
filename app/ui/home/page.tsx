@@ -1,5 +1,5 @@
 "use client";
-import '@/app/ui/global.css'; 
+import '@/app/ui/global.css';
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 
@@ -13,14 +13,13 @@ interface RedditPostData {
   num_comments: number;
 }
 
-// Placeholder Skeleton Component
 function CardSkeleton() {
   return (
     <div className="rounded-xl bg-gray-200 h-64 animate-pulse"></div> 
   );
 }
 
-function RedditFlipCard({ isExpanded, onClick, setIsExpanded }: { isExpanded: boolean; onClick: () => void; setIsExpanded: (index: number | null) => void }) {
+function RedditFlipCard({ index, isExpanded, onClick, setIsExpanded }: { index: number; isExpanded: boolean; onClick: () => void; setIsExpanded: (index: number | null) => void }) {
   const [isFlipped, setIsFlipped] = useState(false);
   const [postData, setPostData] = useState<RedditPostData | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -69,7 +68,7 @@ function RedditFlipCard({ isExpanded, onClick, setIsExpanded }: { isExpanded: bo
     const handleTouchEnd = (event: TouchEvent) => {
       const finalX = event.changedTouches[0].clientX;
       const finalY = event.changedTouches[0].clientY;
-      handleFlipOrExpand(initialX, finalX);
+      handleFlipOrExpand(initialX, finalX, index);
     };
 
     // Mouse Event Handlers
@@ -84,20 +83,19 @@ function RedditFlipCard({ isExpanded, onClick, setIsExpanded }: { isExpanded: bo
 
     const handleMouseUp = (event: MouseEvent) => {
       const finalX = event.clientX;
-      handleFlipOrExpand(initialX, finalX);
+      handleFlipOrExpand(initialX, finalX, index);
     };
 
-    const handleFlipOrExpand = (initialX: number, finalX: number) => {
-  const deltaX = finalX - initialX;
-  if (Math.abs(deltaX) > 50) {
-    setIsFlipped(deltaX < 0 && !isExpanded); // Flip only if not expanded and swiped left
-  } else {
-    // Pass the current index if expanded, null if not
-    setIsExpanded(isExpanded ? null : index); // Expand/collapse
-    onClick(); // Notify the parent about the click
-  }
-};
-
+    // Combined Flip/Expand Logic
+    const handleFlipOrExpand = (initialX: number, finalX: number, index: number) => {
+      const deltaX = finalX - initialX;
+      if (Math.abs(deltaX) > 50) {
+        setIsFlipped(deltaX < 0 && !isExpanded); // Flip only if not expanded and swiped left
+      } else {
+        setIsExpanded(isExpanded ? null : index); // Expand/collapse
+        onClick(); // Notify the parent about the click
+      }
+    };
 
     // Event Listener Attachment
     const cardElement = cardRef.current;
@@ -121,7 +119,7 @@ function RedditFlipCard({ isExpanded, onClick, setIsExpanded }: { isExpanded: bo
         cardElement.removeEventListener('mouseup', handleMouseUp);
       }
     };
-  }, [isExpanded]); // Run effect when isExpanded changes
+  }, [index, isExpanded]); // Run effect when index or isExpanded changes
 
   // Function to Get Reddit Embed URL
   const getRedditEmbedUrl = (permalink: string) => {
@@ -203,7 +201,7 @@ function FlipCardGrid() {
   };
 
   const cards = Array.from({ length: cardCount }, (_, index) => (
-    <RedditFlipCard key={index} isExpanded={expandedCardIndex === index} onClick={() => handleCardClick(index)} setIsExpanded={setExpandedCardIndex} /> 
+    <RedditFlipCard key={index} index={index} isExpanded={expandedCardIndex === index} onClick={() => handleCardClick(index)} setIsExpanded={setExpandedCardIndex} /> 
   ));
 
   return (
