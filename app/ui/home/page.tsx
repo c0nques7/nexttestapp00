@@ -3,6 +3,7 @@
 import '@/app/ui/global.css'; // Replace with your global CSS file path
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { createRoot } from 'react-dom/client'; // Import for client-side rendering
 
 interface RedditPostData {
   title: string;
@@ -180,6 +181,8 @@ function RedditFlipCard({ index, isExpanded, onClick, setIsExpanded }: { index: 
   );
 }
 
+// ... (previous code for RedditFlipCard and CardSkeleton components) ...
+
 function FlipCardGrid() {
   const [cardCount, setCardCount] = useState(3);
   const [expandedCardIndex, setExpandedCardIndex] = useState<number | null>(null);
@@ -211,7 +214,8 @@ function FlipCardGrid() {
         />
       ));
 
-      gridRef.current.innerHTML = ReactDOMServer.renderToString(<>{cards}</>); 
+      const root = createRoot(gridRef.current);
+      root.render(<>{cards}</>);
     }
   }, [cardCount, expandedCardIndex]);
 
@@ -225,7 +229,6 @@ function FlipCardGrid() {
     </div>
   );
 }
-
 
 export default function HomePageWithLogin() {
   return (
@@ -241,3 +244,4 @@ export default function HomePageWithLogin() {
     </div>
   );
 }
+
