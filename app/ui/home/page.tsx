@@ -1,5 +1,6 @@
+// app/page.tsx
 "use client";
-import '@/app/ui/global.css';
+import '@/app/ui/global.css'; // Make sure this points to your global CSS file
 import React, { useState, useEffect, Suspense } from 'react';
 import { CardSkeleton } from '../skeletons';
 import Link from 'next/link';
@@ -36,7 +37,7 @@ function RedditFlipCard() {
         });
       } catch (error) {
         console.error("Error fetching Reddit post:", error);
-        setPostData(null);
+        setPostData(null); // Set postData to null in case of an error
       }
     };
 
@@ -47,6 +48,7 @@ function RedditFlipCard() {
     setIsFlipped(!isFlipped);
   };
 
+  // Loading State
   if (!postData) {
     return <CardSkeleton />;
   }
@@ -55,7 +57,32 @@ function RedditFlipCard() {
     <Suspense fallback={<CardSkeleton />}>
       <div className={`card ${isFlipped ? 'flipped' : ''}`} onClick={handleClick}>
         <div className="rounded-xl bg-gray-50 shadow-sm overflow-hidden">
-          {/* (Front and back content of the card remain the same as in the previous example) */}
+          {/* Front of the Card */}
+          <div className="front relative h-64">
+            {postData.thumbnail && (
+              <img src={postData.thumbnail} alt={postData.title} className="w-full h-full object-cover" />
+            )}
+            <div className="absolute bottom-0 left-0 right-0 p-2 bg-black bg-opacity-50 text-white">
+              <h3 className="font-semibold text-lg line-clamp-2">{postData.title}</h3>
+              <p className="text-sm">r/{postData.subreddit} by u/{postData.author}</p>
+            </div>
+          </div>
+
+          {/* Back of the Card */}
+          <div className="back p-4">
+            <p className="text-sm mb-2">
+              <span className="font-semibold">Score:</span> {postData.score} | 
+              <span className="font-semibold">Comments:</span> {postData.num_comments}
+            </p>
+            <a
+              href={postData.permalink}
+              target="_blank"
+              rel="noreferrer"
+              className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-300"
+            >
+              View on Reddit
+            </a>
+          </div>
         </div>
       </div>
     </Suspense>
