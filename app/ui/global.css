@@ -1,98 +1,104 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-input[type='number'] {
-  -moz-appearance: textfield;
-  appearance: textfield;
-}
-
-input[type='number']::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-input[type='number']::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-/* Basic card styling */
+/* Basic Card Styles */
 .card {
-  width: 300px;
-  height: 200px;
-  perspective: 1000px;
-  margin: 10px;
-}
-
-.card .front,
-.card .back {
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  backface-visibility: hidden;
-  transition: transform 0.6s;
-  transform-style: preserve-3d;
+  perspective: 1000px; /* Required for 3D effect */
+  width: 300px; /* Adjust card width as needed */
+  cursor: grab;   /* Indicate card is grab-able */
 }
 
 .card-inner {
-position: relative;
-width: 100%;
-height: 100%;
-transition: transform 0.8s;
-transform-style: preserve-3d;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.8s ease-in-out; /* Smoother transition on flip */
+  transform-style: preserve-3d;
 }
 
-.card .front {
-  background-color: lightblue;
-  box-shadow: 
-    -5px -5px 10px #ffffff, /* Inner shadow for raised effect */
-    5px 5px 10px #a0a0a0; /* Outer shadow for depth */
-  border-radius: 15px;  /* Rounded corners */
-}
-
-.card .back {
-  background-color: lightcoral;
+.card.flipped .card-inner {
   transform: rotateY(180deg);
-  box-shadow: 
-    -5px -5px 10px #ffffff, /* Inner shadow for raised effect */
-    5px 5px 10px #a0a0a0; /* Outer shadow for depth */
+}
+
+.front,
+.back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* Card Front Styling */
+.front {
+  background-color: #f0f0f0; /* Light gray background */
   border-radius: 15px;  /* Rounded corners */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  z-index: 2; /* Ensure front is above back */
+  overflow: hidden;
 }
 
-/* Flipped state */
-.card.flipped .front {
-  transform: rotateY(-180deg);
+.front h3 {
+  font-size: 1.2rem;
+  line-height: 1.4;
+  margin-bottom: 0.5rem;
 }
 
-.card.flipped .back {
-  transform: rotateY(0deg);
+.front p {
+  font-size: 0.9rem;
+  color: #555;
 }
 
-/* Card grid styling */
+/* Card Back Styling */
+.back {
+  background-color: #fff; /* White background */
+  transform: rotateY(180deg); /* Initially hidden */
+  padding: 1rem;
+  border-radius: 15px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+/* Text styles on the back of the card */
+.back p {
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+.back .font-semibold {
+  font-weight: 600; /* Slightly bolder font for score and comments */
+}
+
+/* Link button style */
+.back a {
+  display: block; /* Make it take up full width */
+  text-align: center;
+  background-color: #007bff; /* Blue background */
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  text-decoration: none;
+  transition: background-color 0.3s;
+}
+
+.back a:hover {
+  background-color: #0056b3; /* Darker blue on hover */
+}
+
+
+/* Card Grid Styling */
 .card-grid {
   display: grid;
-  grid-template-columns:
-repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   grid-gap: 20px;
   padding: 20px;
 }
 
-.card.flipped .card-inner {
-transform: rotateY(180deg);
-}
-
+/* Skeleton Loading Styles */
 .animate-pulse {
-  animation: pulse 2s
-cubic-bezier(0.4, 0, 0.6, 1)
-infinite;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 @keyframes pulse {
-0, 100% {
-  opacity: 1;
+  0%, 100% {
+    opacity: 1;
   }
   50% {
-opacity: 0.5;
+    opacity: 0.5;
   }
 }
