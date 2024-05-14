@@ -54,39 +54,39 @@ function RedditFlipCard() {
   }
 
   return (
-    <Suspense fallback={<CardSkeleton />}>
-      <div className={`card ${isFlipped ? 'flipped' : ''}`} onClick={handleClick}>
-        <div className="rounded-xl bg-gray-50 shadow-sm overflow-hidden">
-          {/* Front of the Card */}
-          <div className="front relative h-64">
-            {postData.thumbnail && (
-              <img src={postData.thumbnail} alt={postData.title} className="w-full h-full object-cover" />
-            )}
-            <div className="absolute bottom-0 left-0 right-0 p-2 bg-black bg-opacity-50 text-white">
-              <h3 className="font-semibold text-lg line-clamp-2">{postData.title}</h3>
-              <p className="text-sm">r/{postData.subreddit} by u/{postData.author}</p>
-            </div>
-          </div>
-
-          {/* Back of the Card */}
-          <div className="back p-4">
-            <p className="text-sm mb-2">
-              <span className="font-semibold">Score:</span> {postData.score} | 
-              <span className="font-semibold">Comments:</span> {postData.num_comments}
-            </p>
-            <a
-              href={postData.permalink}
-              target="_blank"
-              rel="noreferrer"
-              className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-300"
-            >
-              View on Reddit
-            </a>
+  <Suspense fallback={<CardSkeleton />}>
+    <div className={`card ${isFlipped ? 'flipped' : ''}`} onClick={handleClick}>
+      <div className="rounded-xl bg-gray-50 shadow-sm overflow-hidden">
+        {/* Front of the Card */}
+        <div className="front relative h-64 overflow-hidden"> 
+          {postData.thumbnail && (
+            <img src={postData.thumbnail} alt={postData.title} className="w-full h-full object-cover rounded-t-xl" /> 
+          )}
+          <div className="absolute bottom-0 left-0 right-0 p-2 bg-black bg-opacity-50 text-white rounded-b-xl"> 
+            <h3 className="font-semibold text-lg line-clamp-2">{postData.title}</h3>
+            <p className="text-sm">r/{postData.subreddit} by u/{postData.author}</p>
           </div>
         </div>
+
+        {/* Back of the Card */}
+        <div className="back p-4 rounded-xl"> 
+          <p className="text-sm mb-2">
+            <span className="font-semibold">Score:</span> {postData.score} | 
+            <span className="font-semibold">Comments:</span> {postData.num_comments}
+          </p>
+          <a
+            href={postData.permalink}
+            target="_blank"
+            rel="noreferrer"
+            className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-300"
+          >
+            View on Reddit
+          </a>
+        </div>
       </div>
-    </Suspense>
-  );
+    </div>
+  </Suspense>
+ );
 }
 
 
