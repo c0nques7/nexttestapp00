@@ -1,6 +1,5 @@
-// app/page.tsx
 "use client";
-import '@/app/ui/global.css'; // Replace with actual path
+import '@/app/ui/global.css'; // Replace with actual path to your global CSS file
 import React, { useState, useEffect, Suspense, useRef } from 'react';
 import Link from 'next/link';
 
@@ -17,7 +16,7 @@ interface RedditPostData {
 // Placeholder Skeleton Component
 function CardSkeleton() {
   return (
-    <div className="rounded-xl bg-gray-200 h-64 animate-pulse"></div>
+    <div className="rounded-xl bg-gray-200 h-64 animate-pulse"></div> 
   );
 }
 
@@ -44,7 +43,7 @@ function RedditFlipCard() {
         });
       } catch (error) {
         console.error("Error fetching Reddit post:", error);
-        setPostData(null);
+        setPostData(null); // Set postData to null in case of an error
       }
     };
 
@@ -61,7 +60,7 @@ function RedditFlipCard() {
     };
 
     const handleTouchMove = (event: TouchEvent) => {
-      // No need to handle touchmove for simple swipe detection
+      event.preventDefault(); // Prevent scrolling
     };
 
     const handleTouchEnd = (event: TouchEvent) => {
@@ -79,7 +78,7 @@ function RedditFlipCard() {
     };
 
     const handleMouseMove = (event: MouseEvent) => {
-      // No need to handle mousemove for simple swipe detection
+      event.preventDefault(); 
     };
 
     const handleMouseUp = (event: MouseEvent) => {
@@ -159,10 +158,10 @@ function FlipCardGrid() {
 
   useEffect(() => {
     function calculateCardCount() {
-      const cardWidth = 320; // Approximate width of each card including margins
+      const cardWidth = 320;
       const screenWidth = window.innerWidth;
       const cardsPerRow = Math.floor(screenWidth / cardWidth);
-      const totalCards = cardsPerRow * 3; // Adjust the number of rows as needed
+      const totalCards = cardsPerRow * 3;
       setCardCount(totalCards);
     }
 
@@ -171,7 +170,6 @@ function FlipCardGrid() {
 
     return () => window.removeEventListener('resize', calculateCardCount);
   }, []);
-
 
   const cards = Array.from({ length: cardCount }, (_, index) => (
     <RedditFlipCard key={index} />
@@ -184,10 +182,10 @@ function FlipCardGrid() {
   );
 }
 
-export default function homePageWithLogin() {
+export default function HomePageWithLogin() {
   return (
     <div>
-      <div className="fixed top-4 right-4 z-10"> 
+      <div className="fixed top-4 right-4 z-10">
         <Link href="/ui/login">
           <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
             Login
