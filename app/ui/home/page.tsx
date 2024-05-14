@@ -1,7 +1,7 @@
+// app/page.tsx
 "use client";
-import '@/app/ui/global.css'; // Make sure this points to your global CSS file
+import '@/app/ui/global.css';
 import React, { useState, useEffect, Suspense, useRef } from 'react';
-import { CardSkeleton } from '../skeletons'; // Replace with actual path
 import Link from 'next/link';
 
 interface RedditPostData {
@@ -12,6 +12,13 @@ interface RedditPostData {
   permalink: string;
   score: number;
   num_comments: number;
+}
+
+// Placeholder Skeleton Component
+function CardSkeleton() {
+  return (
+    <div className="rounded-xl bg-gray-200 h-64 animate-pulse"></div> 
+  );
 }
 
 function RedditFlipCard() {
@@ -45,26 +52,35 @@ function RedditFlipCard() {
   }, []);
 
   useEffect(() => {
-    const fetchRedditPost = async () => {
-      try {
-        const response = await fetch('https://www.reddit.com/r/popular.json');
-        const json = await response.json();
-        const randomPost = json.data.children[Math.floor(Math.random() * json.data.children.length)].data;
+    let touchStartX = 0;
 
-        setPostData({
-          title: randomPost.title,
-          subreddit: randomPost.subreddit_name_prefixed,
-          author: randomPost.author,
-          thumbnail: randomPost.thumbnail !== 'self' ? randomPost.thumbnail : null,
-          permalink: `https://www.reddit.com${randomPost.permalink}`,
-          score: randomPost.score,
-          num_comments: randomPost.num_comments,
-        });
-      } catch (error) {
-        console.error("Error fetching Reddit post:", error);
-        setPostData(null); // Set postData to null in case of an error
+    const handleTouchStart = (event: TouchEvent) => {
+      touchStartX = event.touches[0].clientX;
+    };
+
+    const handleTouchEnd = (event: TouchEvent) => {
+      const touchEndX = event.changedTouches[0].clientX;
+      const deltaX = touchEndX - touchStartX;
+
+      if (deltaX < -50 && !isFlipped) { 
+        setIsFlipped(true);
+      } else if (deltaX > 50 && isFlipped) { 
+        setIsFlipped(false);
       }
-    }; 
+    };
+
+    if (cardRef.current) {
+      cardRef.current.addEventListener('touchstart', handleTouchStart);
+      cardRef.current.addEventListener('touchend', handleTouchEnd);
+    }
+
+    return () => {
+      if (cardRef.current) {
+        cardRef.current.removeEventListener('touchstart', handleTouchStart);
+        cardRef.current.removeEventListener('touchend', handleTouchEnd);
+      }
+    };
+  }, [isFlipped]);
 
   if (!postData) {
     return <CardSkeleton />;
@@ -72,7 +88,7 @@ function RedditFlipCard() {
 
   return (
     <Suspense fallback={<CardSkeleton />}>
-      <div ref={cardRef} className={`card ${isFlipped ? 'flipped' : ''}`}>
+      <div ref={cardRef} className={`card ${isFlipped ? 'flipped' : ''}`} >
         <div className="rounded-xl bg-gray-50 shadow-sm overflow-hidden">
           {/* Front of the Card */}
           <div className="front relative h-64 overflow-hidden">
@@ -106,17 +122,15 @@ function RedditFlipCard() {
   );
 }
 
-
-
 function FlipCardGrid() {
   const [cardCount, setCardCount] = useState(0);
 
   useEffect(() => {
     function calculateCardCount() {
-      const cardWidth = 320; 
+      const cardWidth = 320;
       const screenWidth = window.innerWidth;
       const cardsPerRow = Math.floor(screenWidth / cardWidth);
-      const totalCards = cardsPerRow * 3; 
+      const totalCards = cardsPerRow * 3;
       setCardCount(totalCards);
     }
 
@@ -137,7 +151,7 @@ function FlipCardGrid() {
   );
 }
 
-export default function homePageWithLogin() {
+export default function HomePageWithLogin() {
   return (
     <div>
       <div className="fixed top-4 right-4 z-10">
