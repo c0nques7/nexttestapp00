@@ -1,4 +1,3 @@
-// app/page.tsx
 "use client";
 import '@/app/ui/global.css'; // Replace with your global CSS file path
 import React, { useState, useEffect, useRef } from 'react';
@@ -17,13 +16,12 @@ interface RedditPostData {
 // Placeholder Skeleton Component
 function CardSkeleton() {
   return (
-    <div className="rounded-xl bg-gray-200 h-64 animate-pulse"></div> 
+    <div className="rounded-xl bg-gray-200 h-64 animate-pulse"></div>
   );
 }
 
-function RedditFlipCard() {
+function RedditFlipCard({ isExpanded, onClick }: { isExpanded: boolean; onClick: () => void }) {
   const [isFlipped, setIsFlipped] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(false);
   const [postData, setPostData] = useState<RedditPostData | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -130,7 +128,7 @@ function RedditFlipCard() {
   };
 
   return (
-    <div ref={cardRef} className={`card relative ${isFlipped ? 'flipped' : ''} ${isExpanded ? 'expanded' : ''}`} onClick={handleCardClick}>
+    <div ref={cardRef} className={`card relative ${isFlipped ? 'flipped' : ''} ${isExpanded ? 'expanded' : ''}`} onClick={onClick}>
       <div className="card-inner">
         {postData ? (
           <>
@@ -181,15 +179,15 @@ function RedditFlipCard() {
 }
 
 function FlipCardGrid() {
-  const [cardCount, setCardCount] = useState(3); // Initial cards (adjust as needed)
+  const [cardCount, setCardCount] = useState(3);
   const [expandedCardIndex, setExpandedCardIndex] = useState<number | null>(null);
 
   useEffect(() => {
     function calculateCardCount() {
-      const cardWidth = 320; // Approximate width including margins
+      const cardWidth = 320;
       const screenWidth = window.innerWidth;
       const cardsPerRow = Math.floor(screenWidth / cardWidth);
-      const totalCards = cardsPerRow * 3; // 3 rows of cards
+      const totalCards = cardsPerRow * 3;
       setCardCount(totalCards);
     }
 
@@ -199,7 +197,7 @@ function FlipCardGrid() {
   }, []);
 
   const handleCardClick = (index: number) => {
-    setExpandedCardIndex(isExpanded ? null : index); // Toggle expanded state
+    setExpandedCardIndex(isExpanded ? null : index);
   };
 
   const cards = Array.from({ length: cardCount }, (_, index) => (
@@ -212,7 +210,6 @@ function FlipCardGrid() {
     </div>
   );
 }
-
 
 export default function HomePageWithLogin() {
   return (
