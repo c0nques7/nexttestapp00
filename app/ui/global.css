@@ -26,7 +26,7 @@ input[type="number"]::-webkit-outer-spin-button {
   position: relative;
   width: 100%;
   height: 100%;
-  transition: transform 0.8s ease-in-out; /* Smoother transition on flip */
+  transition: transform 0.5s ease-in-out; /* Smoother transition on flip */
   transform-style: preserve-3d;
 }
 
