@@ -1,7 +1,7 @@
 // app/page.tsx
 "use client";
-import '@/app/ui/global.css'; // Replace with actual path
-import React, { useState, useEffect, Suspense, useRef } from 'react';
+import '@/app/ui/global.css'; // Replace with the actual path to your global CSS file
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 
 interface RedditPostData {
@@ -17,7 +17,7 @@ interface RedditPostData {
 // Placeholder Skeleton Component
 function CardSkeleton() {
   return (
-    <div className="rounded-xl bg-gray-200 h-64 animate-pulse"></div>
+    <div className="rounded-xl bg-gray-200 h-64 animate-pulse"></div> 
   );
 }
 
@@ -31,8 +31,7 @@ function RedditFlipCard() {
       try {
         const response = await fetch('https://www.reddit.com/r/popular.json');
         const json = await response.json();
-        const randomPost =
-          json.data.children[Math.floor(Math.random() * json.data.children.length)].data;
+        const randomPost = json.data.children[Math.floor(Math.random() * json.data.children.length)].data;
 
         setPostData({
           title: randomPost.title,
@@ -45,6 +44,7 @@ function RedditFlipCard() {
         });
       } catch (error) {
         console.error("Error fetching Reddit post:", error);
+        setPostData(null); 
       }
     };
 
@@ -61,7 +61,7 @@ function RedditFlipCard() {
     };
 
     const handleTouchMove = (event: TouchEvent) => {
-      event.preventDefault();
+      event.preventDefault(); // Prevent scrolling
     };
 
     const handleTouchEnd = (event: TouchEvent) => {
@@ -119,10 +119,6 @@ function RedditFlipCard() {
     };
   }, [isFlipped]); // Include isFlipped in dependency array
 
-  if (!postData) {
-    return <CardSkeleton />;
-  }
-
   return (
     <div ref={cardRef} className={`card relative ${isFlipped ? 'flipped' : ''}`} >
       <div className="card-inner">
@@ -140,7 +136,7 @@ function RedditFlipCard() {
             </div>
 
             {/* Back of the Card */}
-            <div className="back absolute w-full h-full p-4 rounded-xl">
+            <div className="back absolute w-full h-full p-4 rounded-xl z-10">
               <p className="text-sm mb-2">
                 <span className="font-semibold">Score:</span> {postData.score} | 
                 <span className="font-semibold">Comments:</span> {postData.num_comments}
@@ -163,17 +159,19 @@ function RedditFlipCard() {
   );
 }
 
+
+
 function FlipCardGrid() {
   const [cardCount, setCardCount] = useState(3); // Initial cards (adjust as needed)
 
   useEffect(() => {
-    const calculateCardCount = () => {
+    function calculateCardCount() {
       const cardWidth = 320; // Approximate width including margins
       const screenWidth = window.innerWidth;
       const cardsPerRow = Math.floor(screenWidth / cardWidth);
       const totalCards = cardsPerRow * 3; // 3 rows of cards
       setCardCount(totalCards);
-    };
+    }
 
     calculateCardCount();
     window.addEventListener('resize', calculateCardCount);
@@ -184,14 +182,17 @@ function FlipCardGrid() {
     <RedditFlipCard key={index} />
   ));
 
-  return <div className="card-grid">{cards}</div>;
+  return (
+    <div className="card-grid">
+      {cards}
+    </div>
+  );
 }
-
 
 export default function HomePageWithLogin() {
   return (
     <div>
-      <div className="fixed top-4 right-4 z-10"> 
+      <div className="fixed top-4 right-4 z-10">
         <Link href="/ui/login">
           <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
             Login
