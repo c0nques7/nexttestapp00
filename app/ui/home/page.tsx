@@ -20,7 +20,7 @@ function CardSkeleton() {
   );
 }
 
-function RedditFlipCard({ isExpanded, onClick, setIsExpanded }: { isExpanded: boolean; onClick: () => void; setIsExpanded: (isExpanded: boolean) => void }) {
+function RedditFlipCard({ isExpanded, onClick, setIsExpanded }: { isExpanded: boolean; onClick: () => void; setIsExpanded: (index: number | null) => void }) {
   const [isFlipped, setIsFlipped] = useState(false);
   const [postData, setPostData] = useState<RedditPostData | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -129,7 +129,7 @@ function RedditFlipCard({ isExpanded, onClick, setIsExpanded }: { isExpanded: bo
   };
 
   return (
-    <div ref={cardRef} className={`card relative ${isFlipped ? 'flipped' : ''} ${isExpanded ? 'expanded' : ''}`}>
+    <div ref={cardRef} className={`card relative ${isFlipped ? 'flipped' : ''} ${isExpanded ? 'expanded' : ''}`} onClick={onClick}>
       <div className="card-inner">
         {postData ? (
           <>
@@ -178,7 +178,6 @@ function RedditFlipCard({ isExpanded, onClick, setIsExpanded }: { isExpanded: bo
     </div>
   );
 }
-// rest of the code is the same as before
 
 function FlipCardGrid() {
   const [cardCount, setCardCount] = useState(3);
