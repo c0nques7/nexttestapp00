@@ -181,14 +181,15 @@ function RedditFlipCard() {
 }
 
 function FlipCardGrid() {
-  const [cardCount, setCardCount] = useState(3); 
+  const [cardCount, setCardCount] = useState(3); // Initial cards (adjust as needed)
+  const [expandedCardIndex, setExpandedCardIndex] = useState<number | null>(null);
 
   useEffect(() => {
     function calculateCardCount() {
-      const cardWidth = 320; 
+      const cardWidth = 320; // Approximate width including margins
       const screenWidth = window.innerWidth;
       const cardsPerRow = Math.floor(screenWidth / cardWidth);
-      const totalCards = cardsPerRow * 3; 
+      const totalCards = cardsPerRow * 3; // 3 rows of cards
       setCardCount(totalCards);
     }
 
@@ -197,8 +198,12 @@ function FlipCardGrid() {
     return () => window.removeEventListener('resize', calculateCardCount);
   }, []);
 
+  const handleCardClick = (index: number) => {
+    setExpandedCardIndex(isExpanded ? null : index); // Toggle expanded state
+  };
+
   const cards = Array.from({ length: cardCount }, (_, index) => (
-    <RedditFlipCard key={index} />
+    <RedditFlipCard key={index} isExpanded={expandedCardIndex === index} onClick={() => handleCardClick(index)} />
   ));
 
   return (
@@ -207,6 +212,7 @@ function FlipCardGrid() {
     </div>
   );
 }
+
 
 export default function HomePageWithLogin() {
   return (
