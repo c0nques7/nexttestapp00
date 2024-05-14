@@ -97,13 +97,13 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 
 
-/* Card Grid Styling */
 .card-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  grid-gap: 20px;
-  padding: 20px;
+  display: flex; /* or grid */
+  flex-wrap: wrap; /* or grid-template-columns if using grid */
+  gap: 1rem; /* Adjust spacing as needed */
+  justify-content: center; /* Optional: Center cards horizontally */
 }
+
 
 /* Skeleton Loading Styles */
 .animate-pulse {
