@@ -87,16 +87,17 @@ function RedditFlipCard({ isExpanded, onClick, setIsExpanded }: { isExpanded: bo
       handleFlipOrExpand(initialX, finalX);
     };
 
-    // Combined Flip/Expand Logic
     const handleFlipOrExpand = (initialX: number, finalX: number) => {
-      const deltaX = finalX - initialX;
-      if (Math.abs(deltaX) > 50) {
-        setIsFlipped(!isExpanded && deltaX < 0); // Flip only if not expanded
-      } else {
-        setIsExpanded(!isExpanded); // Expand/collapse
-        onClick(); // Notify the parent about the click
-      }
-    };
+  const deltaX = finalX - initialX;
+  if (Math.abs(deltaX) > 50) {
+    setIsFlipped(deltaX < 0 && !isExpanded); // Flip only if not expanded and swiped left
+  } else {
+    // Pass the current index if expanded, null if not
+    setIsExpanded(isExpanded ? null : index); // Expand/collapse
+    onClick(); // Notify the parent about the click
+  }
+};
+
 
     // Event Listener Attachment
     const cardElement = cardRef.current;
