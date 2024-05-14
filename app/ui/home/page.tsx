@@ -1,6 +1,6 @@
 // app/page.tsx
 "use client";
-import '@/app/ui/global.css';
+import '@/app/ui/global.css'; // Replace with actual path
 import React, { useState, useEffect, Suspense, useRef } from 'react';
 import Link from 'next/link';
 
@@ -14,7 +14,7 @@ interface RedditPostData {
   num_comments: number;
 }
 
-// Placeholder Skeleton Component
+// Placeholder Skeleton Component (replace with your actual component)
 function CardSkeleton() {
   return (
     <div className="rounded-xl bg-gray-200 h-64 animate-pulse"></div> 
@@ -53,35 +53,55 @@ function RedditFlipCard() {
 
   useEffect(() => {
     let touchStartX = 0;
+    let touchStartTime = 0; 
+    let isMoving = false; 
 
     const handleTouchStart = (event: TouchEvent) => {
       touchStartX = event.touches[0].clientX;
+      touchStartTime = Date.now();
+      isMoving = true;
+    };
+
+    const handleTouchMove = (event: TouchEvent) => {
+      if (!isMoving) return;
     };
 
     const handleTouchEnd = (event: TouchEvent) => {
+      if (!isMoving) return;
+
       const touchEndX = event.changedTouches[0].clientX;
       const deltaX = touchEndX - touchStartX;
-
-      if (deltaX < -50 && !isFlipped) { 
-        setIsFlipped(true);
-      } else if (deltaX > 50 && isFlipped) { 
-        setIsFlipped(false);
+      const deltaTime = Date.now() - touchStartTime;
+      
+      // Check for valid swipe gesture 
+      if (Math.abs(deltaX) > 50 && deltaTime < 300) { 
+        if (deltaX < 0 && !isFlipped) { // Left swipe threshold
+          setIsFlipped(true);
+        } else if (deltaX > 0 && isFlipped) { // Right swipe threshold (optional)
+          setIsFlipped(false);
+        }
       }
+      isMoving = false; 
     };
 
-    if (cardRef.current) {
-      cardRef.current.addEventListener('touchstart', handleTouchStart);
-      cardRef.current.addEventListener('touchend', handleTouchEnd);
+    const currentCardRef = cardRef.current;
+
+    if (currentCardRef) {
+      currentCardRef.addEventListener('touchstart', handleTouchStart);
+      currentCardRef.addEventListener('touchmove', handleTouchMove);
+      currentCardRef.addEventListener('touchend', handleTouchEnd);
     }
 
     return () => {
-      if (cardRef.current) {
-        cardRef.current.removeEventListener('touchstart', handleTouchStart);
-        cardRef.current.removeEventListener('touchend', handleTouchEnd);
+      if (currentCardRef) {
+        currentCardRef.removeEventListener('touchstart', handleTouchStart);
+        currentCardRef.removeEventListener('touchmove', handleTouchMove);
+        currentCardRef.removeEventListener('touchend', handleTouchEnd);
       }
     };
-  }, [isFlipped]);
+  }, [isFlipped]); // Make sure to include isFlipped here! 
 
+  // Loading State
   if (!postData) {
     return <CardSkeleton />;
   }
@@ -122,15 +142,17 @@ function RedditFlipCard() {
   );
 }
 
+
+
 function FlipCardGrid() {
   const [cardCount, setCardCount] = useState(0);
 
   useEffect(() => {
     function calculateCardCount() {
-      const cardWidth = 320;
+      const cardWidth = 320; 
       const screenWidth = window.innerWidth;
       const cardsPerRow = Math.floor(screenWidth / cardWidth);
-      const totalCards = cardsPerRow * 3;
+      const totalCards = cardsPerRow * 3; 
       setCardCount(totalCards);
     }
 
