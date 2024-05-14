@@ -14,10 +14,10 @@ interface RedditPostData {
   num_comments: number;
 }
 
-// Placeholder Skeleton Component (replace with your actual component)
+// Placeholder Skeleton Component
 function CardSkeleton() {
   return (
-    <div className="rounded-xl bg-gray-200 h-64 animate-pulse"></div> 
+    <div className="rounded-xl bg-gray-200 h-64 animate-pulse"></div>
   );
 }
 
@@ -44,7 +44,7 @@ function RedditFlipCard() {
         });
       } catch (error) {
         console.error("Error fetching Reddit post:", error);
-        setPostData(null); 
+        setPostData(null);
       }
     };
 
@@ -52,56 +52,68 @@ function RedditFlipCard() {
   }, []);
 
   useEffect(() => {
-    let touchStartX = 0;
-    let touchStartTime = 0; 
-    let isMoving = false; 
+    let startX = 0;
+    let startTime = 0;
 
     const handleTouchStart = (event: TouchEvent) => {
-      touchStartX = event.touches[0].clientX;
-      touchStartTime = Date.now();
-      isMoving = true;
+      startX = event.touches[0].clientX;
+      startTime = Date.now();
     };
 
     const handleTouchMove = (event: TouchEvent) => {
-      if (!isMoving) return;
+      // No need to handle touchmove for simple swipe detection
     };
 
     const handleTouchEnd = (event: TouchEvent) => {
-      if (!isMoving) return;
+      const endX = event.changedTouches[0].clientX;
+      const deltaTime = Date.now() - startTime;
 
-      const touchEndX = event.changedTouches[0].clientX;
-      const deltaX = touchEndX - touchStartX;
-      const deltaTime = Date.now() - touchStartTime;
-      
-      // Check for valid swipe gesture 
-      if (Math.abs(deltaX) > 50 && deltaTime < 300) { 
-        if (deltaX < 0 && !isFlipped) { // Left swipe threshold
-          setIsFlipped(true);
-        } else if (deltaX > 0 && isFlipped) { // Right swipe threshold (optional)
-          setIsFlipped(false);
-        }
+      if (Math.abs(endX - startX) > 50 && deltaTime < 300) { // Swipe threshold
+        setIsFlipped(endX < startX); // Flip if swipe is to the left
       }
-      isMoving = false; 
     };
 
-    const currentCardRef = cardRef.current;
+    const handleMouseDown = (event: MouseEvent) => {
+      startX = event.clientX;
+      startTime = Date.now();
+    };
 
-    if (currentCardRef) {
-      currentCardRef.addEventListener('touchstart', handleTouchStart);
-      currentCardRef.addEventListener('touchmove', handleTouchMove);
-      currentCardRef.addEventListener('touchend', handleTouchEnd);
+    const handleMouseMove = (event: MouseEvent) => {
+      // No need to handle mousemove for simple swipe detection
+    };
+
+    const handleMouseUp = (event: MouseEvent) => {
+      const endX = event.clientX;
+      const deltaTime = Date.now() - startTime;
+
+      if (Math.abs(endX - startX) > 50 && deltaTime < 300) { // Swipe threshold
+        setIsFlipped(endX < startX); // Flip if swipe is to the left
+      }
+    };
+
+    const cardElement = cardRef.current; 
+
+    if (cardElement) {
+      cardElement.addEventListener('touchstart', handleTouchStart);
+      cardElement.addEventListener('touchmove', handleTouchMove);
+      cardElement.addEventListener('touchend', handleTouchEnd);
+      cardElement.addEventListener('mousedown', handleMouseDown);
+      cardElement.addEventListener('mousemove', handleMouseMove);
+      cardElement.addEventListener('mouseup', handleMouseUp);
     }
 
     return () => {
-      if (currentCardRef) {
-        currentCardRef.removeEventListener('touchstart', handleTouchStart);
-        currentCardRef.removeEventListener('touchmove', handleTouchMove);
-        currentCardRef.removeEventListener('touchend', handleTouchEnd);
+      if (cardElement) {
+        cardElement.removeEventListener('touchstart', handleTouchStart);
+        cardElement.removeEventListener('touchmove', handleTouchMove);
+        cardElement.removeEventListener('touchend', handleTouchEnd);
+        cardElement.removeEventListener('mousedown', handleMouseDown);
+        cardElement.removeEventListener('mousemove', handleMouseMove);
+        cardElement.removeEventListener('mouseup', handleMouseUp);
       }
     };
-  }, [isFlipped]); // Make sure to include isFlipped here! 
+  }, [isFlipped]); // Include isFlipped in dependency array
 
-  // Loading State
   if (!postData) {
     return <CardSkeleton />;
   }
@@ -142,17 +154,15 @@ function RedditFlipCard() {
   );
 }
 
-
-
 function FlipCardGrid() {
   const [cardCount, setCardCount] = useState(0);
 
   useEffect(() => {
     function calculateCardCount() {
-      const cardWidth = 320; 
+      const cardWidth = 320; // Approximate width of each card including margins
       const screenWidth = window.innerWidth;
       const cardsPerRow = Math.floor(screenWidth / cardWidth);
-      const totalCards = cardsPerRow * 3; 
+      const totalCards = cardsPerRow * 3; // Adjust the number of rows as needed
       setCardCount(totalCards);
     }
 
@@ -161,6 +171,7 @@ function FlipCardGrid() {
 
     return () => window.removeEventListener('resize', calculateCardCount);
   }, []);
+
 
   const cards = Array.from({ length: cardCount }, (_, index) => (
     <RedditFlipCard key={index} />
@@ -173,10 +184,10 @@ function FlipCardGrid() {
   );
 }
 
-export default function HomePageWithLogin() {
+export default function homePageWithLogin() {
   return (
     <div>
-      <div className="fixed top-4 right-4 z-10">
+      <div className="fixed top-4 right-4 z-10"> 
         <Link href="/ui/login">
           <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
             Login
