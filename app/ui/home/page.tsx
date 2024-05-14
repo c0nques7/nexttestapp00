@@ -1,5 +1,5 @@
 "use client";
-import '@/app/ui/global.css'; // Replace with actual path to your global CSS file
+import '@/app/ui/global.css'; // Replace with actual path
 import React, { useState, useEffect, Suspense, useRef } from 'react';
 import Link from 'next/link';
 
@@ -51,47 +51,52 @@ function RedditFlipCard() {
   }, []);
 
   useEffect(() => {
-    let startX = 0;
-    let startTime = 0;
+    let initialX = 0;
+    let initialY = 0;
 
     const handleTouchStart = (event: TouchEvent) => {
-      startX = event.touches[0].clientX;
-      startTime = Date.now();
+      initialX = event.touches[0].clientX;
+      initialY = event.touches[0].clientY;
     };
 
     const handleTouchMove = (event: TouchEvent) => {
-      event.preventDefault(); // Prevent scrolling
+      event.preventDefault(); // Prevent default scrolling behavior
     };
 
     const handleTouchEnd = (event: TouchEvent) => {
-      const endX = event.changedTouches[0].clientX;
-      const deltaTime = Date.now() - startTime;
+      const finalX = event.changedTouches[0].clientX;
+      const finalY = event.changedTouches[0].clientY;
 
-      if (Math.abs(endX - startX) > 50 && deltaTime < 300) { // Swipe threshold
-        setIsFlipped(endX < startX); // Flip if swipe is to the left
+      const deltaX = finalX - initialX;
+      const deltaY = finalY - initialY;
+
+      if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) { 
+        setIsFlipped(deltaX < 0); // Flip if swipe is to the left
       }
     };
 
     const handleMouseDown = (event: MouseEvent) => {
-      startX = event.clientX;
-      startTime = Date.now();
+      initialX = event.clientX;
+      initialY = event.clientY;
     };
 
     const handleMouseMove = (event: MouseEvent) => {
-      event.preventDefault(); 
+      event.preventDefault();
     };
 
     const handleMouseUp = (event: MouseEvent) => {
-      const endX = event.clientX;
-      const deltaTime = Date.now() - startTime;
+      const finalX = event.clientX;
+      const finalY = event.clientY;
 
-      if (Math.abs(endX - startX) > 50 && deltaTime < 300) { // Swipe threshold
-        setIsFlipped(endX < startX); // Flip if swipe is to the left
+      const deltaX = finalX - initialX;
+      const deltaY = finalY - initialY;
+
+      if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+        setIsFlipped(deltaX < 0);
       }
     };
 
-    const cardElement = cardRef.current; 
-
+    const cardElement = cardRef.current;
     if (cardElement) {
       cardElement.addEventListener('touchstart', handleTouchStart);
       cardElement.addEventListener('touchmove', handleTouchMove);
@@ -111,7 +116,9 @@ function RedditFlipCard() {
         cardElement.removeEventListener('mouseup', handleMouseUp);
       }
     };
-  }, [isFlipped]); // Include isFlipped in dependency array
+  }, [isFlipped]);
+    
+    
 
   if (!postData) {
     return <CardSkeleton />;
