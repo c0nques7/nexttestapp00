@@ -126,35 +126,32 @@ function RedditFlipCard() {
 
   return (
     <Suspense fallback={<CardSkeleton />}>
-      <div ref={cardRef} className={`card ${isFlipped ? 'flipped' : ''}`} >
-        <div className="rounded-xl bg-gray-50 shadow-sm overflow-hidden">
-          {/* Front of the Card */}
-          <div className="front relative h-64 overflow-hidden">
-            {postData.thumbnail && (
-              <img src={postData.thumbnail} alt={postData.title} className="w-full h-full object-cover rounded-t-xl" />
-            )}
-            <div className="absolute bottom-0 left-0 right-0 p-2 bg-black bg-opacity-50 text-white rounded-b-xl">
-              <h3 className="font-semibold text-lg line-clamp-2">{postData.title}</h3>
-              <p className="text-sm">r/{postData.subreddit} by u/{postData.author}</p>
-            </div>
-          </div>
-
-          {/* Back of the Card */}
-          <div className="back p-4 rounded-xl">
+        <div ref={cardRef} className={`card relative ${isFlipped ? 'flipped' : ''}`}>
+            <div className="card-inner"> 
+                <div className="front absolute w-full h-full"> {/* Fixed Height & overflow-hidden on parent div*/}
+                {postData.thumbnail && (
+                    <img src={postData.thumbnail} alt={postData.title} className="w-full h-full object-cover rounded-t-xl" />
+                )}
+                <div className="absolute bottom-0 left-0 right-0 p-2 bg-black bg-opacity-50 text-white rounded-b-xl">
+                    <h3 className="font-semibold text-lg line-clamp-2">{postData.title}</h3>
+                    <p className="text-sm">r/{postData.subreddit} by u/{postData.author}</p>
+                </div>
+                </div>
+            <div className="back absolute w-full h-full p-4 rounded-xl"> 
             <p className="text-sm mb-2">
-              <span className="font-semibold">Score:</span> {postData.score} | 
-              <span className="font-semibold">Comments:</span> {postData.num_comments}
+                <span className="font-semibold">Score:</span> {postData.score} | 
+                <span className="font-semibold">Comments:</span> {postData.num_comments}
             </p>
             <a
-              href={postData.permalink}
-              target="_blank"
-              rel="noreferrer"
-              className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-300"
+                href={postData.permalink}
+                target="_blank"
+                rel="noreferrer"
+                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-300"
             >
-              View on Reddit
+                View on Reddit
             </a>
+            </div>
           </div>
-        </div>
       </div>
     </Suspense>
   );
@@ -165,10 +162,10 @@ function FlipCardGrid() {
 
   useEffect(() => {
     function calculateCardCount() {
-      const cardWidth = 320;
+      const cardWidth = 320; 
       const screenWidth = window.innerWidth;
       const cardsPerRow = Math.floor(screenWidth / cardWidth);
-      const totalCards = cardsPerRow * 3;
+      const totalCards = cardsPerRow * 3; 
       setCardCount(totalCards);
     }
 
@@ -177,6 +174,7 @@ function FlipCardGrid() {
 
     return () => window.removeEventListener('resize', calculateCardCount);
   }, []);
+
 
   const cards = Array.from({ length: cardCount }, (_, index) => (
     <RedditFlipCard key={index} />
@@ -189,10 +187,10 @@ function FlipCardGrid() {
   );
 }
 
-export default function HomePageWithLogin() {
+export default function homePageWithLogin() {
   return (
     <div>
-      <div className="fixed top-4 right-4 z-10">
+      <div className="fixed top-4 right-4 z-10"> 
         <Link href="/ui/login">
           <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
             Login
