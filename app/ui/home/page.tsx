@@ -27,69 +27,62 @@ function CardSkeleton() {
   return <div className="rounded-xl bg-gray-200 h-64 animate-pulse"></div>;
 }
 
-function RedditCard({ postData, 
-  isExpanded, 
-  onClick 
-}: { 
-  postData: RedditPostData | null;
-  isExpanded: boolean;           
-  onClick: () => void;  }) {
-  const [imageSrc, setImageSrc] = useState<string | null>(postData?.thumbnail || null);
+function RedditCard({ postData, isExpanded, onClick }: { postData: RedditPostData | null, isExpanded: boolean, onClick: () => void }) {
+  const [imageSrc, setImageSrc] = useState<string | undefined>(postData?.thumbnail || undefined);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // If there's a thumbnail, try to load it.
-    // If it fails or there's no thumbnail, use the subreddit icon.
     if (postData?.thumbnail) {
       const img = new Image();
       img.src = postData.thumbnail;
-      img.onload = () => setIsLoading(false); // Successful load
-      img.onerror = () => setImageSrc(`undefined`); // Fallback to icon
+      img.onload = () => setIsLoading(false);
+      img.onerror = () => setImageSrc(undefined); 
     } else {
-      setImageSrc(`undefined`); // Default to icon if no thumbnail
-      setIsLoading(false); 
+      setImageSrc(undefined); 
+      setIsLoading(false);
     }
-  }, [postData?.thumbnail]); // Re-run effect if thumbnail changes
-
-  const handleViewOnRedditClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    window.open(`https://www.reddit.com${postData.permalink}`, '_blank');
-  };
+  }, [postData?.thumbnail]); 
 
   return (
     <div className={`card ${isExpanded ? 'expanded' : ''}`} onClick={onClick}>
       <div className="card-inner">
         {postData ? ( 
-          // Render the card content if postData is available
           <>
             <div className="front w-full h-full">
-              <img
-                src={postData.thumbnail || "https://www.redditstatic.com/desktop2x/img/favicon/apple-icon-180x180.png"}
-                alt={postData.title}
-                className="w-full h-full object-cover rounded-t-xl"
-              />
+              {isLoading ? (
+                <CardSkeleton /> 
+              ) : (
+                <img src={imageSrc} alt={postData.title} className="w-full h-full object-cover rounded-t-xl" style={{ display: imageSrc ? "block" : "none" }} />
+              )}
               <div className="absolute bottom-0 left-0 right-0 p-2 bg-black bg-opacity-50 text-white rounded-b-xl">
-                <h3 className="font-semibold text-lg line-clamp-2">{postData.title}</h3>
+                <h3 className="font-semibold text-lg line-clamp-2">{postData?.title ?? "No Title Available"}</h3>
                 <p className="text-sm">r/{postData.subreddit} by u/{postData.author}</p>
               </div>
             </div>
-
             {isExpanded && (
               <div className="expanded-content absolute w-full h-full top-0 left-0 bg-black bg-opacity-50 flex items-center justify-center text-white text-center z-10 rounded-xl">
                 <div>
                   <p className="text-sm">Score: {postData.score} | Comments: {postData.num_comments}</p>
-                  <button
-                    onClick={handleViewOnRedditClick}
-                    className="mt-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                  >
-                    View on Reddit
-                  </button>
+                  {(() => {
+                    const handleViewOnRedditClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+                      e.stopPropagation();
+                      window.open(`https://www.reddit.com${postData.permalink}`, '_blank');
+                    };
+
+                    return (
+                      <button
+                        onClick={handleViewOnRedditClick}
+                        className="mt-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                      >
+                        View on Reddit
+                      </button>
+                    );
+                  })()} 
                 </div>
               </div>
             )}
           </>
         ) : (
-          // Render a placeholder or loading state if postData is null
           <CardSkeleton />
         )}
       </div>
@@ -97,15 +90,22 @@ function RedditCard({ postData,
   );
 }
 
+
+
 function CardGrid() {
   const [cardData, setCardData] = useState<RedditPostData[]>([]);
   const [expandedCardIndex, setExpandedCardIndex] = useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [subredditSelection, setSubredditSelection] = useState<string>('default');
+  const [isLoading, setIsLoading] = useState(false);
+  const [shouldFetch, setShouldFetch] = useState(false);
+  const defaultSubreddits = ['reactjs', 'javascript', 'webdev', 'programming', 'technology'];
 
   useEffect(() => {
-    const fetchRedditPosts = async () => {
-      const subreddits = ['reactjs', 'javascript', 'webdev', 'programming', 'technology'];
-      const uniquePosts: RedditPostData[] = []; // To store unique posts
-      const seenPostIds = new Set<string>();     // To track seen post IDs
+    const fetchRedditPosts = async (subreddits: string[]) => {
+      setIsLoading(true);
+      const uniquePosts: RedditPostData[] = [];
+      const seenPostIds = new Set<string>();
 
       for (const subreddit of subreddits) {
         try {
@@ -120,36 +120,71 @@ function CardGrid() {
           }
 
           const subredditPosts = json.data.children.map(child => child.data);
-
-          // Filter out duplicates based on post ID
           const newUniquePosts = subredditPosts.filter(post => {
-            if (!seenPostIds.has(post.permalink)) { // If not seen before
-              seenPostIds.add(post.permalink);      // Mark as seen
-              return true;                          // Include in uniquePosts
+            if (!seenPostIds.has(post.permalink)) {
+              seenPostIds.add(post.permalink);
+              return true;
             }
-            return false;                         // Already seen, exclude
+            return false;
           });
 
-          uniquePosts.push(...newUniquePosts); // Add unique posts from this subreddit
-
+          uniquePosts.push(...newUniquePosts);
         } catch (error) {
           console.error(`Error fetching from r/${subreddit}:`, error);
         }
       }
-
-      setCardData(uniquePosts); // Set only unique posts to state
+      setCardData(uniquePosts);
+      setIsLoading(false);
     };
 
-    fetchRedditPosts();
-  }, []);  
+    if (shouldFetch) {
+      if (subredditSelection === 'default') {
+        fetchRedditPosts(defaultSubreddits);
+      } else if (searchQuery) {
+        fetchRedditPosts([searchQuery]);
+      }
+    }
+  }, [subredditSelection, searchQuery, shouldFetch]);
 
   const handleCardClick = (index: number) => {
     setExpandedCardIndex(expandedCardIndex === index ? null : index);
   };
 
+  const handleSubredditSelection = (selection: 'default' | 'custom') => {
+    setSubredditSelection(selection);
+    setShouldFetch(true);
+  };
+
   return (
     <div className="card-grid">
-      {cardData.map((postData, index) => (
+      {/* Subreddit Selection */}
+      {cardData.length === 0 && !isLoading && (
+        <div className="subreddit-selection">
+          <button onClick={() => handleSubredditSelection('default')}>Use Default Subreddits</button>
+          <button onClick={() => handleSubredditSelection('custom')}>Select Subreddits</button>
+        </div>
+      )}
+
+      {/* Search Bar (only when 'custom' is selected) */}
+      {subredditSelection === 'custom' && (
+        <input
+          type="text"
+          placeholder="Search subreddit"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      )}
+
+      {/* Loading State */}
+      {isLoading && (
+        <div className="loading-state">
+          {/* Add your loading indicator here (e.g., spinner, text) */}
+          Loading...
+        </div>
+      )}
+
+      {/* Cards */}
+      {!isLoading && cardData.map((postData, index) => (
         <RedditCard
           key={index}
           postData={postData}
