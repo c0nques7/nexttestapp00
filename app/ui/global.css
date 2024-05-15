@@ -68,7 +68,7 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 
 .card.expanded {
-  height: auto; /* Allow card to expand dynamically */
+  height: 350px; /* Allow card to expand dynamically */
 }
 
 .card-inner {

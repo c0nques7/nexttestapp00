@@ -1,0 +1,5 @@
+.main {
+    background-image: url('/public/background.png'); /* Replace with your image filename */
+    background-size: cover; /* Optional: Adjust how the image covers the background */
+    background-repeat: no-repeat; /* Optional: Prevent image repetition */
+  }

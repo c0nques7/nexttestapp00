@@ -41,6 +41,7 @@ export async function POST(request: NextRequest) {
     // Generate JWT on Successful Login
     const tokenPayload = { userId: user.id }; // Include user role if needed
     const token = jwt.sign(tokenPayload, JWT_SECRET!, { expiresIn: '1h' }); // 1 hour (adjust)
+    console.log('Generated JWT:', token)
 
     // Set JWT as HTTP-only cookie (refined for better security)
     const response = NextResponse.json({ message: 'Login successful', user: tokenPayload });
