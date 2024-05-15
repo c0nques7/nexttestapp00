@@ -27,7 +27,13 @@ function CardSkeleton() {
   return <div className="rounded-xl bg-gray-200 h-64 animate-pulse"></div>;
 }
 
-function RedditCard({ postData, isExpanded, onClick }) {
+function RedditCard({ postData, 
+  isExpanded, 
+  onClick 
+}: { 
+  postData: RedditPostData | null;
+  isExpanded: boolean;           
+  onClick: () => void;  }) {
   const [imageSrc, setImageSrc] = useState<string | null>(postData?.thumbnail || null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -45,7 +51,7 @@ function RedditCard({ postData, isExpanded, onClick }) {
     }
   }, [postData?.thumbnail]); // Re-run effect if thumbnail changes
 
-  const handleViewOnRedditClick = (e) => {
+  const handleViewOnRedditClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     window.open(`https://www.reddit.com${postData.permalink}`, '_blank');
   };
@@ -53,14 +59,15 @@ function RedditCard({ postData, isExpanded, onClick }) {
   return (
     <div className={`card ${isExpanded ? 'expanded' : ''}`} onClick={onClick}>
       <div className="card-inner">
-        {postData ? (
+        {postData ? ( 
+          // Render the card content if postData is available
           <>
             <div className="front w-full h-full">
-              {isLoading ? (
-                <CardSkeleton /> // Show skeleton while loading
-              ) : (
-                <img src={imageSrc} alt={postData.title} className="w-full h-full object-cover rounded-t-xl" style={{ display: imageSrc ? "block" : "none" }} />
-              )}
+              <img
+                src={postData.thumbnail || "https://www.redditstatic.com/desktop2x/img/favicon/apple-icon-180x180.png"}
+                alt={postData.title}
+                className="w-full h-full object-cover rounded-t-xl"
+              />
               <div className="absolute bottom-0 left-0 right-0 p-2 bg-black bg-opacity-50 text-white rounded-b-xl">
                 <h3 className="font-semibold text-lg line-clamp-2">{postData.title}</h3>
                 <p className="text-sm">r/{postData.subreddit} by u/{postData.author}</p>
@@ -82,6 +89,7 @@ function RedditCard({ postData, isExpanded, onClick }) {
             )}
           </>
         ) : (
+          // Render a placeholder or loading state if postData is null
           <CardSkeleton />
         )}
       </div>
