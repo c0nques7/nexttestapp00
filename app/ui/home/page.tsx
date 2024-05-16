@@ -6,7 +6,7 @@ import { RedditPostData, RedditApiResponse } from '../types';
 import RedditCard from '../../components/RedditCard/redditcard';
 
 // Define the default subreddits
-const defaultSubreddits = ['popular', 'all' , 'javascript', 'webdev', 'programming', 'technology'];
+const defaultSubreddits = ['popular', 'all' , 'pics', 'webdev', 'programming', 'technology'];
 
 export default function HomePage() {
   const [cardData, setCardData] = useState<RedditPostData[]>([]);

@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { RedditPostData } from '../../ui/types'; 
-import Image from 'next/image'
+import Image from 'next/image';
+
+const allowedImageHosts = ['preview.redd.it', 'external-preview.redd.it', 'b.thumbs.redditmedia.com'];
 
 const CardSkeleton = () => (
   <div className="rounded-xl bg-gray-200 h-64 animate-pulse"></div>
@@ -15,7 +17,11 @@ interface RedditCardProps {
 }
 
 
-export default function RedditCard({ postData, isExpanded, onClick }: RedditCardProps) {
+export default function RedditCard({
+  postData,
+  isExpanded,
+  onClick,
+}: RedditCardProps) {
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -23,26 +29,20 @@ export default function RedditCard({ postData, isExpanded, onClick }: RedditCard
     const loadImage = async () => {
       if (postData) {
         let imageUrlToUse: string | null = null;
-
-        // 1. Check for high-resolution image
-        if (
-          postData.preview &&
-          postData.preview.images.length > 0 &&
-          postData.preview.images[0].source.url
-        ) {
-          imageUrlToUse = postData.preview.images[0].source.url;
+  
+        // Check for high-resolution and thumbnail
+        imageUrlToUse = postData?.preview?.images?.[0]?.source?.url || postData.thumbnail;
+  
+        if (imageUrlToUse && imageUrlToUse.startsWith('http')) { // Make sure URL is valid
+          setImageSrc(imageUrlToUse);
+        } else {
+          console.error("Invalid image URL:", imageUrlToUse);
         }
-
-        // 2. Fallback to thumbnail if high-resolution not available or fails to load
-        if (!imageUrlToUse || !imageUrlToUse.startsWith('http')) { // Check if url is valid
-          imageUrlToUse = postData.thumbnail;
-        }
-
-        setImageSrc(imageUrlToUse);
-        setIsLoading(false);
-      }
+      } 
+  
+      setIsLoading(false);
     };
-
+  
     loadImage();
   }, [postData]);
 
