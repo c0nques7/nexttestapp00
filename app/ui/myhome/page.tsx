@@ -2,9 +2,9 @@
 
 import '@/app/ui/global.css'; 
 import React, { Fragment, useEffect, useState } from 'react';
-import RedditCard from '../home/page';
 import Link from 'next/link';
 import { RedditPostData, RedditApiResponse } from '../types';
+import RedditCard from '../../components/RedditCard/redditcard';
 
 export default function MyHomePage() {
   const [savedSubreddits, setSavedSubreddits] = useState<string[]>([]);
