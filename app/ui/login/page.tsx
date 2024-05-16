@@ -30,10 +30,9 @@ const LoginForm: React.FC = () => {
         // Successful login
         const data = await response.json();
         console.log('Login successful:', data);
-
-        // Store user data (or JWT) in context or session storage 
-        // Redirect to dashboard or protected page
-        router.push('/ui/selection'); 
+        //Save JWT and move to myHome page
+        localStorage.setItem('jwtToken', data.jwt);
+        router.push('/ui/myhome'); 
       } else {
         const errorData = await response.json();
         setError(errorData.error || 'Login failed. Please check your credentials.');

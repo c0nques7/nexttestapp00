@@ -4,11 +4,13 @@ import '@/app/ui/global.css';
 import { useState, useEffect, Fragment } from 'react';
 import { RedditPostData, RedditApiResponse } from '../types';
 import RedditCard from '../../components/RedditCard/redditcard';
+import { useRouter } from 'next/navigation';
 
 // Define the default subreddits
 const defaultSubreddits = ['popular', 'all' , 'pics', 'webdev', 'programming', 'technology'];
 
 export default function HomePage() {
+  const router = useRouter();
   const [cardData, setCardData] = useState<RedditPostData[]>([]);
   const [expandedCardIndex, setExpandedCardIndex] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -54,6 +56,33 @@ export default function HomePage() {
     fetchRedditPosts(); // Fetch posts on component mount
   }, []);
 
+  useEffect(() => {
+    const checkAuthentication = async () => {
+      const token = localStorage.getItem('jwtToken'); // Or however you're storing the JWT
+
+      if (!token) {
+        // Redirect to login page if token doesn't exist
+        router.push('/ui/login');
+      } else {
+        try {
+          // You might want to verify the token on your backend here
+          const response = await fetch('/api/verify', { // Example API route
+            headers: { Authorization: `Bearer ${token}` }
+          });
+
+          if (!response.ok) {
+            router.push('/ui/login'); 
+          }
+        } catch (error) {
+          console.error("Error verifying token:", error);
+          router.push('/ui/login');
+        }
+      }
+    };
+
+    checkAuthentication();
+  }, [router]);
+  
   const handleCardClick = (index: number) => {
     setExpandedCardIndex(expandedCardIndex === index ? null : index);
   };

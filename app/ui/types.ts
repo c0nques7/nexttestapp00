@@ -6,6 +6,13 @@ export interface RedditPostData {
   permalink: string;
   score: number;
   num_comments: number;
+  is_video: boolean;
+  media?: {
+    reddit_video?: {
+      fallback_url: string;
+      // Add other video-related properties as needed
+    };
+  };
   preview?: {  // Make preview optional
     images: {
       source: {
