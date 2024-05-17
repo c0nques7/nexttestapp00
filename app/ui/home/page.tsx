@@ -1,110 +1,76 @@
 "use client";
-
 import '@/app/ui/global.css';
-import { useState, useEffect, Fragment } from 'react';
-import { RedditPostData, RedditApiResponse } from '../types';
+import React, { Fragment, useEffect, useState } from 'react';
+import { RedditPostData, RedditApiResponse, RedditPost } from '../types';
 import RedditCard from '../../components/RedditCard/redditcard';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
-// Define the default subreddits
-const defaultSubreddits = ['popular', 'all' , 'pics', 'webdev', 'programming', 'technology'];
-
-export default function HomePage() {
-  const router = useRouter();
-  const [cardData, setCardData] = useState<RedditPostData[]>([]);
-  const [expandedCardIndex, setExpandedCardIndex] = useState<number | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+export default function MyHomePage() {
+  const [fetchedPosts, setFetchedPosts] = useState<RedditPostData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [expandedPostId, setExpandedPostId] = useState<string | null>(null);
+  // Hardcoded list of subreddits
+  const savedSubreddits = ["popular", "pics", "reactjs", "javascript", "programming"]; 
 
   useEffect(() => {
-    const fetchRedditPosts = async () => {
-      setIsLoading(true);
-      const uniquePosts: RedditPostData[] = [];
-      const seenPostIds = new Set<string>();
+    fetchPosts(); 
+  }, []); // Run this effect only once on component mount
 
-      for (const subreddit of defaultSubreddits) {
-        try {
-          const response = await fetch(`https://www.reddit.com/r/${subreddit}/top.json?limit=20`);
-          if (!response.ok) {
-            throw new Error(`Failed to fetch from r/${subreddit}: ${response.status} ${response.statusText}`);
-          }
+  // Function to fetch posts from Reddit API
+  const fetchPosts = async () => {
+    setIsLoading(true);
 
-          const json: RedditApiResponse = await response.json();
-          if (!json || !json.data || !json.data.children) {
-            throw new Error(`Unexpected data format from r/${subreddit}`);
-          }
+    const postPromises = savedSubreddits.map(subreddit => 
+      fetch(`https://www.reddit.com/r/${subreddit}/top.json?limit=10`)
+        .then(res => res.json() as Promise<RedditApiResponse>)
+        .then(json => json.data.children.map(child => child.data))
+    );
 
-          const subredditPosts = json.data.children.map(child => child.data);
-          const newUniquePosts = subredditPosts.filter(post => {
-            if (!seenPostIds.has(post.permalink)) {
-              seenPostIds.add(post.permalink);
-              return true;
-            }
-            return false;
-          });
+    try {
+      const allPosts = await Promise.all(postPromises);
+      const uniquePosts = allPosts.flat().filter((post, index, self) =>
+        index === self.findIndex(p => p.id === post.id)
+      );
+      setFetchedPosts(uniquePosts);
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+    }
 
-          uniquePosts.push(...newUniquePosts);
-        } catch (error) {
-          console.error(`Error fetching from r/${subreddit}:`, error);
-          // Consider showing an error message to the user
-        }
-      }
+    setIsLoading(false);
+  };
 
-      setCardData(uniquePosts);
-      setIsLoading(false);
-    };
-
-    fetchRedditPosts(); // Fetch posts on component mount
-  }, []);
-
-  useEffect(() => {
-    const checkAuthentication = async () => {
-      const token = localStorage.getItem('jwtToken'); // Or however you're storing the JWT
-
-      if (!token) {
-        // Redirect to login page if token doesn't exist
-        router.push('/ui/login');
-      } else {
-        try {
-          // You might want to verify the token on your backend here
-          const response = await fetch('/api/verify', { // Example API route
-            headers: { Authorization: `Bearer ${token}` }
-          });
-
-          if (!response.ok) {
-            router.push('/ui/login'); 
-          }
-        } catch (error) {
-          console.error("Error verifying token:", error);
-          router.push('/ui/login');
-        }
-      }
-    };
-
-    checkAuthentication();
-  }, [router]);
-  
-  const handleCardClick = (index: number) => {
-    setExpandedCardIndex(expandedCardIndex === index ? null : index);
+  // Function to handle card click
+  const handleCardClick = (postId: string) => {
+    setExpandedPostId(expandedPostId === postId ? null : postId);
   };
 
   return (
-    <div className="card-grid">
-      {isLoading && (
-        <div className="loading-state">
-          {/* Loading indicator (e.g., spinner, text) */}
-          Loading...
+    <div className="myhome-page">
+      {/* Logout Button */}
+      <div className="fixed top-4 right-4 z-10">
+        <Link href="/ui/login" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+          Logout 
+        </Link>
+      </div>
+
+      <h1 className="text-3xl font-bold mb-4">Default Home</h1>
+
+      {/* Loading State */}
+      {isLoading && <p>Loading posts...</p>}
+
+      {/* Post Display */}
+      {!isLoading && (
+        <div className="card-grid">
+          {fetchedPosts.map(post => (
+            <RedditCard 
+              key={post.id}
+              postData={post} 
+              isExpanded={expandedPostId === post.id} 
+              onClick={() => handleCardClick(post.id)}
+            />
+          ))}
         </div>
       )}
-
-      {!isLoading && cardData.map((postData, index) => (
-        <Fragment key={index}>
-          <RedditCard
-            postData={postData}
-            isExpanded={expandedCardIndex === index}
-            onClick={() => handleCardClick(index)}
-          />
-        </Fragment>
-      ))}
     </div>
   );
 }

@@ -46,9 +46,6 @@ export async function POST(request: NextRequest) {
     // Set JWT as HTTP-only cookie (refined for better security)
     const response = NextResponse.json({ message: 'Login successful', user: tokenPayload });
     response.cookies.set('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
       maxAge: 3600, // 1 hour
       path: '/',
     });

@@ -31,7 +31,7 @@ const LoginForm: React.FC = () => {
         const data = await response.json();
         console.log('Login successful:', data);
         //Save JWT and move to myHome page
-        localStorage.setItem('jwtToken', data.jwt);
+        localStorage.setItem('token', data.jwt);
         router.push('/ui/myhome'); 
       } else {
         const errorData = await response.json();

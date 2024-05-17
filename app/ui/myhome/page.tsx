@@ -5,20 +5,27 @@ import { useRouter } from 'next/navigation'; // Import useRouter
 import Link from 'next/link';
 import { RedditPostData, RedditApiResponse } from '../types';
 import RedditCard from '../../components/RedditCard/redditcard';
+import { parseCookies } from 'nookies';
 
 export default function MyHomePage() {
   const router = useRouter();
   const [savedSubreddits, setSavedSubreddits] = useState<string[]>([]);
   const [fetchedPosts, setFetchedPosts] = useState<RedditPostData[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true); // Add isLoading state
 
   // Check JWT and Redirect if Not Authenticated
-  useEffect(() => {
-    const checkAuthentication = () => {
-      const token = localStorage.getItem("jwtToken");
+ useEffect(() => {
+    const checkAuthentication = async () => {
+      const cookies = parseCookies(); 
+      const token = cookies.token; 
+
       if (!token) {
         router.push("/ui/login");
       }
+
+      setIsLoading(false); // Set loading to false when authentication is done
     };
+
     checkAuthentication();
   }, [router]); 
 
@@ -59,32 +66,38 @@ export default function MyHomePage() {
 
   return (
     <div className="myhome-page">
-      {/* Logout Button */}
-      <div className="fixed top-4 right-4 z-10">
-        <Link
-          href="/ui/login"
-          onClick={handleLogout}
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-        >
-          Logout
-        </Link>
-      </div>
+      {/* Show loading state */}
+      {isLoading ? (
+        <p>Loading...</p> 
+      ) : (
+        // Show content when not loading
+        <>
+          {/* Your logout button */}
+          <div className="fixed top-4 right-4 z-10">
+            {/* Logout Button */}
+            <div className="fixed top-4 right-4 z-10">
+              <Link
+                href="/ui/login"
+                onClick={handleLogout}
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              >
+                Logout
+              </Link>
+            </div>
+          </div>
 
-      <h1 className="text-3xl font-bold mb-4">My Home</h1>
+          <h1 className="text-3xl font-bold mb-4">My Home</h1>
 
-      <div className="card-grid">
-        {fetchedPosts.map((postData, index) => (
-          <Fragment key={index}>
-            <RedditCard
-              postData={postData}
-              isExpanded={false}
-              onClick={() => {
-                /* Handle card click logic here if needed */
-              }}
-            />
-          </Fragment>
-        ))}
-      </div>
+          {/* Your RedditCard components */}
+          <div className="card-grid">
+            {fetchedPosts.map((postData, index) => (
+              <Fragment key={index}>
+                <RedditCard postData={postData} isExpanded={false} onClick={() => { /* ... */ }} />
+              </Fragment>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }

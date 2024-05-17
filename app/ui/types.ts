@@ -1,4 +1,7 @@
+// types.ts
+
 export interface RedditPostData {
+  id: string;
   title: string;
   subreddit: string;
   author: string;
@@ -13,7 +16,7 @@ export interface RedditPostData {
       // Add other video-related properties as needed
     };
   };
-  preview?: {  // Make preview optional
+  preview?: {
     images: {
       source: {
         url: string;
@@ -44,15 +47,24 @@ export interface RedditPostData {
     enabled: boolean;
   };
 }
-  
+
+
 export interface RedditApiResponse {
-  kind: string;  // Add the kind property
+  kind: string;
   data: {
-    children: {
-      kind: string; // Add the kind property
-      data: RedditPostData;
-    }[];
-    after: string | null; // Add the after property
-    before: string | null; // Add the before property
+    children: RedditPost[]; // Use the RedditPost interface for children
+    after: string | null;
+    before: string | null;
   };
+}
+
+// Updated interface to match the data structure of children in the Reddit API response
+export interface RedditPost {
+  kind: string;
+  data: RedditPostData;
+}
+
+//Interface used for the savesubreddit fetch call
+interface SavedSubreddit {
+  name: string; 
 }
