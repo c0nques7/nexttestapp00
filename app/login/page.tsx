@@ -47,7 +47,7 @@ const LoginForm: React.FC = () => {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-[#79966e]"> 
-      <form className="neumorphic space-y-6 p-8 w-full max-w-md rounded-lg" onSubmit={handleSubmit}>
+      <form className="neumorphic login space-y-6 p-8 w-full max-w-md rounded-lg" onSubmit={handleSubmit}>
         <h1 className="text-2xl font-semibold text-center mb-4">Log in to PeakeFeed</h1>
         <div>
           {/* Identifier Input */}
@@ -99,7 +99,7 @@ const LoginForm: React.FC = () => {
         </div>
 
         {/* Login Button */}
-        <Button type="submit" className="neumorphic-button w-full mt-4" disabled={isLoading}>
+        <Button type="submit" className="neumorphic-button login" disabled={isLoading}>
           {isLoading ? 'Logging in...' : 'Log in '} 
           <ArrowRightIcon className="ml-2 h-5 w-5 text-gray-50" />
         </Button>

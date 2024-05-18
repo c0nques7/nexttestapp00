@@ -4,7 +4,8 @@ import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import TextCard from '../components/TextCard/textcard';
 import PostCard from '../components/PostCard/postcard';
-
+import FinancialCard from '../components/FinanceCard/financecard';
+import {LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip} from 'recharts';
 interface FetchPostsResponse {
   userPosts: {
     id: number;
@@ -28,7 +29,23 @@ export default function MyHomePage() {
   });
   const [postError, setPostError] = useState(null);
   const [userPosts, setUserPosts] = useState<{ id: number; content: string; userId: number; channel: string; timestamp: string; }[]>([]); // Initialize userPosts as an empty array
-
+  const [stockData, setStockData] = useState<any>(null);
+  const [symbol, setSymbol] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const fetchStockData = async () => {
+    try {
+      const response = await fetch(`/api/fetchchart?symbol=${symbol}`);
+      const data = await response.json();
+      if (response.ok) {
+        setStockData(data);
+      } else {
+        setError(data.error || 'Failed to fetch stock data');
+      }
+    } catch (error) {
+      console.error("Error fetching stock data:", error);
+      setError('An error occurred while fetching stock data');
+    }
+  };
 
   const handleDropdownToggle = () => {
     setIsTextPostFormOpen(!isTextPostFormOpen);
@@ -88,6 +105,17 @@ export default function MyHomePage() {
     <div className="myhome-page" style={{ width: '100%' }}>
       {/* Post Dropdown Button & Text Post Form */}
       <div className="flex justify-center w-full"> {/* Add flex container for centering */}
+      <h2 className="text-xl font-semibold mb-2">Stock Lookup</h2>
+        <input
+          type="text"
+          placeholder="Enter stock symbol (e.g., AAPL)"
+          value={symbol}
+          onChange={(e) => setSymbol(e.target.value)}
+          className="neumorphic-input w-full p-4 rounded-md mb-2"
+        />
+        <button onClick={fetchStockData} className="neumorphic-button">
+          Fetch Data
+        </button>
         <div className="post-dropdown relative">
           <button onClick={handleDropdownToggle} className="neumorphic-button py-2 px-4 rounded">
             Post+
@@ -117,6 +145,11 @@ export default function MyHomePage() {
           )}
         </div>
       </div>
+      <div className="stock-chart-container"> {/* Container for the stock chart */}
+          {stockData && stockData.length > 0 && ( // Conditionally render the chart
+            <FinancialCard data={stockData} symbol={symbol} />
+          )}
+        </div>
 
       {/* Post Cards */}
       {userPosts && userPosts.length > 0 && userPosts.map((userPost, index) => (

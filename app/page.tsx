@@ -10,7 +10,7 @@ export default function Page() {
 
                 <div className="flex gap-4 w-full justify-center"> 
                     <Link
-                        href="./register"
+                        href="./login"
                         className="neumorphic-button text-white bg-blue-500 hover:bg-blue-700 focus:ring-blue-300 active:shadow-inner active:bg-blue-800 w-full"
                     >
                         Register/Log In
