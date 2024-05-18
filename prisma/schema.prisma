@@ -18,3 +18,103 @@ model site_users {
   mySubs   String[]
   userPost String  @default(uuid())
 }
+
+model User {
+  id             Int         @id @default(autoincrement())
+  username       String      @unique
+  email          String      @unique
+  passwordHash   String
+  isVerified   Boolean  @default(true)
+  role           Role
+  ethereumAddress String?  
+  posts          Post[]
+  votes          Vote[]
+  following      Follow[]    @relation("following")
+  followers      Follow[]    @relation("followedBy")
+  moderatorIn    Moderator[]
+  flags          Flag[]
+
+  @@map("users")
+}
+
+model Post {
+  id             Int       @id @default(autoincrement())
+  userId         Int
+  user           User      @relation(fields: [userId], references: [id])
+  content        String
+  channelId      Int?
+  channel        Channel?  @relation(fields: [channelId], references: [id])
+  timestamp      DateTime  @default(now())
+  isPublic       Boolean   @default(true)
+  postType       PostType
+  mediaUrl       String?
+  transactionHash String?  @unique
+  votes          Vote[]
+  flags          Flag[]
+
+  @@map("posts")
+}
+
+model Vote {
+  id             Int       @id @default(autoincrement())
+  userId         Int
+  user           User      @relation(fields: [userId], references: [id])
+  postId         Int
+  post           Post      @relation(fields: [postId], references: [id])
+  voteValue      Int
+  transactionHash String?
+
+  @@map("votes")
+}
+
+model Channel {
+  id         Int       @id @default(autoincrement())
+  name       String    @unique
+  posts      Post[]
+  moderators Moderator[]
+
+  @@map("channels")
+}
+
+model Moderator {
+  userId    Int
+  user      User      @relation(fields: [userId], references: [id])
+  channelId Int
+  channel   Channel   @relation(fields: [channelId], references: [id])
+
+  @@id([userId, channelId])
+  @@map("moderators")
+}
+
+model Flag {
+  id     Int    @id @default(autoincrement())
+  userId Int
+  user   User   @relation(fields: [userId], references: [id])
+  postId Int
+  post   Post   @relation(fields: [postId], references: [id])
+  reason String
+
+  @@map("flags")
+}
+
+model Follow {
+  followerId Int
+  followedId Int
+  follower   User @relation("following", fields: [followerId], references: [id], onDelete: Cascade)
+  followed   User @relation("followedBy", fields: [followedId], references: [id], onDelete: Cascade)
+
+  @@id([followerId, followedId])
+}
+
+enum Role {
+  STANDARD
+  MODERATOR
+  ADMIN
+  CORPORATE
+}
+
+enum PostType {
+  TEXT
+  PICTURE
+  VIDEO
+}

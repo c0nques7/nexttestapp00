@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { RedditPostData } from "../../ui/types";
+import { RedditPostData } from "../../lib/types";
 import Image from "next/image";
 
 const allowedImageHosts = [

@@ -4,6 +4,7 @@ interface TextCardProps {
     textContent: string;
     isExpanded: boolean;
     onClick: () => void;
+    className?: string;
    
   }
 
