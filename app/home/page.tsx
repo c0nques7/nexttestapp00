@@ -1,5 +1,5 @@
 "use client";
-import '@/app/ui/global.css';
+import '@/app/styles/global.css';
 import React, { Fragment, useEffect, useState } from 'react';
 import { RedditPostData, RedditApiResponse } from '../lib/types';
 import RedditCard from '../components/RedditCard/redditcard';
