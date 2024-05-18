@@ -3,6 +3,14 @@
 @tailwind components;
 @tailwind utilities;
 
+
+/* Global Styles */
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Roboto', sans-serif;
+  background-color: #f9f9f9;
+}
 /* Input Number Styling */
 input[type="number"] {
   -moz-appearance: textfield; /* Firefox */
@@ -15,12 +23,12 @@ input[type="number"]::-webkit-outer-spin-button {
   margin: 0;
 }
 
-.main-container { /* Assuming you have a main-container class */
+.main-container {
   display: flex;
-  flex-direction: column; /* Items in a column */
-  min-height: 100vh;     /* Ensure the container takes full viewport height */
-  justify-content: center; /* Center vertically */
-  align-items: center;    /* Center horizontally */
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f9f9f9;
 }
 
 .subreddit-selection button {
@@ -162,6 +170,20 @@ input[type="number"]::-webkit-outer-spin-button {
   background-color: #0056b3; 
 }
 
+.button {
+  padding: 10px 20px;
+  margin: 5px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.button:hover {
+  background-color: #45a049;
+}
 
 /* Expanded Card Styles */
 .card.expanded .card-inner {  
@@ -268,6 +290,58 @@ input[type="number"]::-webkit-outer-spin-button {
   border-radius: 4px;
   cursor: pointer;
   margin-left: 10px;
+}
+
+.post-dropdown {
+  position: relative;
+}
+
+.post-dropdown-toggle {
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  min-width: 120px;
+  border: 1px solid #ddd;
+  z-index: 1;
+}
+
+.dropdown-item {
+  color: #333;
+  padding: 10px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.post-dropdown:hover .dropdown-content {
+  display: block;
+}
+
+.dropdown-content p {
+  color: #333;
+  padding: 10px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dropdown-item:hover {
+  background-color: #f1f1f1;
+}
+
+.submit-button {
+  background-color: blue;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
 @keyframes pulse {

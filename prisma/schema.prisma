@@ -15,5 +15,6 @@ model site_users {
   email    String  @unique
   username String  @unique
   password String
-  mySubs   String?
+  mySubs   String[]
+  userPost String  @default(uuid())
 }

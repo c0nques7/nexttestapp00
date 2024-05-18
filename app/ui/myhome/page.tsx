@@ -1,11 +1,13 @@
 'use client';
+import '@/app/ui/global.css';
 // Import necessary modules and types
 import { useEffect, useState, Fragment } from 'react';
 // import { useRouter } from 'next/router'; // Removed
 import Link from 'next/link';
-import { parseCookies } from 'nookies'; // Ensure to install this package
+import TextCard from '../../components/TextCard/textcard';
 import RedditCard from '../../components/RedditCard/redditcard';// Ensure this component exists
 import { RedditPostData, SavedSubredditResponse, RedditApiResponse } from '../types';// Adjust path as necessary
+
 
  // Define the functional component
 export default function MyHomePage() {
@@ -17,8 +19,27 @@ export default function MyHomePage() {
  const [isLoading, setIsLoading] = useState<boolean>(true);
  const [error, setError] = useState<string | null>(null);
  const [expandedPostId, setExpandedPostId] = useState<string | null>(null);
-
+ const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+ const [isTextPostFormOpen, setIsTextPostFormOpen] = useState(false);
+const [textPostContent, setTextPostContent] = useState('');
+const [isTextCardVisible, setIsTextCardVisible] = useState(false);
  // Fetch saved subreddits on component mount
+ const handleSubmitTextPost = () => {
+  // Submitting the text post content and setting the state
+  // Assuming text post content is saved in textPostContent state
+  setIsTextCardVisible(true);
+};
+ 
+ const handleDropdownToggle = () => {
+  setIsDropdownOpen((prev) => !prev);
+};
+
+const handleOptionClick = (option: string) => {
+  console.log(`Selected option: ${option}`);
+  if (option === 'text post') {
+      setIsTextPostFormOpen(true);
+  }
+};
  useEffect(() => {
  const fetchSavedSubreddits = async () => {
  try {
@@ -72,7 +93,7 @@ if (json && json.data&& Array.isArray(json.data.children)){
  }, [savedSubreddits]);
 
  const handleLogout = () => {
- localStorage.removeItem("jwtToken");
+
 // router.push("/ui/login"); // Removed
  };
 
@@ -84,6 +105,11 @@ if (json && json.data&& Array.isArray(json.data.children)){
  const updatedSubreddits = savedSubreddits.filter(subreddit=> subreddit !== subredditToRemove);
  setSavedSubreddits(updatedSubreddits);
  localStorage.setItem('savedSubreddits',JSON.stringify(updatedSubreddits));
+};
+
+const handleTextPostSubmit = () => {
+  // Save the text post content or update the state to display the textCard
+  setIsTextPostFormOpen(false);
 };
 
  return (
@@ -101,6 +127,7 @@ if (json && json.data&& Array.isArray(json.data.children)){
  Logout
  </Link>
  </div>
+ 
 
  <h1 className="text-3xl font-bold mb-4">My Home</h1>
  <div className ="saved-subreddits-container">
@@ -119,6 +146,29 @@ if (json && json.data&& Array.isArray(json.data.children)){
  </ul>
  </div>
 
+ <div className="post-dropdown">
+      <button onClick={handleDropdownToggle} className="post-dropdown-toggle">
+        Post+
+      </button>
+      {isDropdownOpen && (
+        <div className="dropdown-content">
+          <p onClick={() => handleOptionClick('text post')}>Text Post</p>
+          <p onClick={() => handleOptionClick('image post')}>Image Post</p>
+          <p onClick={() => handleOptionClick('video post')}>Video Post</p>
+        </div>
+      )}
+    </div>
+
+    {isTextPostFormOpen && (
+  <div className="text-post-form">
+    <textarea
+      value={textPostContent}
+      onChange={(e) => setTextPostContent(e.target.value)}
+      placeholder="Enter your text post content..."/>
+    <button onClick={handleTextPostSubmit}>Submit</button>
+  </div>
+)}
+
  <div className="card-grid">
  {fetchedPosts.map((postData,index) => (
  <Fragment key={index}>
@@ -132,6 +182,9 @@ onClick={() => handleCardClick(postData.id)}
  </div>
  </>
  )}
+ {isTextCardVisible && (
+                <TextCard textContent={textPostContent} isExpanded={true} onClick={() => console.log('Text Card Clicked')} />
+            )}
  </div>
  );
 };
