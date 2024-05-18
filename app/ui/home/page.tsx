@@ -1,7 +1,7 @@
 "use client";
 import '@/app/ui/global.css';
 import React, { Fragment, useEffect, useState } from 'react';
-import { RedditPostData, RedditApiResponse, RedditPost } from '../types';
+import { RedditPostData, RedditApiResponse } from '../types';
 import RedditCard from '../../components/RedditCard/redditcard';
 import Link from 'next/link';
 

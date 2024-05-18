@@ -38,16 +38,18 @@ export async function POST(request: NextRequest) {
       return new NextResponse("Invalid credentials", { status: 401 });
     }
 
-    // Generate JWT on Successful Login
-    const tokenPayload = { userId: user.id }; // Include user role if needed
-    const token = jwt.sign(tokenPayload, JWT_SECRET!, { expiresIn: '1h' }); // 1 hour (adjust)
-    console.log('Generated JWT:', token)
+    // JWT Generation
+    const tokenPayload = { userId: user.id }; 
+    const token = jwt.sign(tokenPayload, JWT_SECRET!, { expiresIn: '1h' }); 
+    console.log('Generated JWT:', token);
 
-    // Set JWT as HTTP-only cookie (refined for better security)
+    // Cookie Settings (Secure only in production)
     const response = NextResponse.json({ message: 'Login successful', user: tokenPayload });
-    response.cookies.set('token', token, {
-      maxAge: 3600, // 1 hour
-      path: '/',
+    response.cookies.set("token", token, {
+      secure: process.env.NODE_ENV === 'development',  // Secure only in production
+      sameSite: 'strict',
+      maxAge: 3600, 
+      path: '/',   
     });
 
     return response;

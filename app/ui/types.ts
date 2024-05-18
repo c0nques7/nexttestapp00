@@ -1,5 +1,6 @@
 // types.ts
 
+// Main Post Data Interface (RedditPostData)
 export interface RedditPostData {
   id: string;
   title: string;
@@ -7,15 +8,20 @@ export interface RedditPostData {
   author: string;
   thumbnail: string | null;
   permalink: string;
+  url: string; // Added `url` property for post's direct link
   score: number;
   num_comments: number;
   is_video: boolean;
+
+  // Optional Media Properties (For Video Posts)
   media?: {
     reddit_video?: {
       fallback_url: string;
-      // Add other video-related properties as needed
+      // Add other video properties like height, width, duration, etc. if needed
     };
   };
+
+  // Optional Preview Properties (For Image Posts)
   preview?: {
     images: {
       source: {
@@ -29,7 +35,7 @@ export interface RedditPostData {
         height: number;
       }[];
       variants: {
-        [key: string]: {
+        gif?: { // Added optional 'gif' variant
           source: {
             url: string;
             width: number;
@@ -41,6 +47,19 @@ export interface RedditPostData {
             height: number;
           }[];
         };
+        mp4?: { // Added optional 'mp4' variant
+          source: {
+            url: string;
+            width: number;
+            height: number;
+          };
+          resolutions: {
+            url: string;
+            width: number;
+            height: number;
+          }[];
+        };
+        // ...other potential variants like 'nsfw'
       };
       id: string;
     }[];
@@ -48,23 +67,20 @@ export interface RedditPostData {
   };
 }
 
-
+// API Response Interface (RedditApiResponse)
 export interface RedditApiResponse {
   kind: string;
   data: {
-    children: RedditPost[]; // Use the RedditPost interface for children
+    children: {
+      kind: string;
+      data: RedditPostData;
+    }[]; 
     after: string | null;
     before: string | null;
   };
 }
 
-// Updated interface to match the data structure of children in the Reddit API response
-export interface RedditPost {
-  kind: string;
-  data: RedditPostData;
-}
-
-//Interface used for the savesubreddit fetch call
-interface SavedSubreddit {
-  name: string; 
+// Interface for Saved Subreddits (for Fetch Calls)
+export interface SavedSubredditResponse {
+  mySubs: string[];
 }

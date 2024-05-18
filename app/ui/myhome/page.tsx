@@ -1,103 +1,137 @@
-"use client";
-import '@/app/ui/global.css';
-import React, { Fragment, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation'; // Import useRouter
+'use client';
+// Import necessary modules and types
+import { useEffect, useState, Fragment } from 'react';
+// import { useRouter } from 'next/router'; // Removed
 import Link from 'next/link';
-import { RedditPostData, RedditApiResponse } from '../types';
-import RedditCard from '../../components/RedditCard/redditcard';
-import { parseCookies } from 'nookies';
+import { parseCookies } from 'nookies'; // Ensure to install this package
+import RedditCard from '../../components/RedditCard/redditcard';// Ensure this component exists
+import { RedditPostData, SavedSubredditResponse, RedditApiResponse } from '../types';// Adjust path as necessary
 
+ // Define the functional component
 export default function MyHomePage() {
-  const router = useRouter();
-  const [savedSubreddits, setSavedSubreddits] = useState<string[]>([]);
-  const [fetchedPosts, setFetchedPosts] = useState<RedditPostData[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true); // Add isLoading state
+ // const router = useRouter(); // Removed
 
-  // Check JWT and Redirect if Not Authenticated
+ // State management for the component
+ const [savedSubreddits, setSavedSubreddits] = useState<string[]>([]);
+ const [fetchedPosts, setFetchedPosts] = useState<RedditPostData[]>([]);
+ const [isLoading, setIsLoading] = useState<boolean>(true);
+ const [error, setError] = useState<string | null>(null);
+ const [expandedPostId, setExpandedPostId] = useState<string | null>(null);
+
+ // Fetch saved subreddits on component mount
  useEffect(() => {
-    const checkAuthentication = async () => {
-      const cookies = parseCookies(); 
-      const token = cookies.token; 
+ const fetchSavedSubreddits = async () => {
+ try {
+ setIsLoading(true);
+ const response = await fetch('/ui/api/fetchsavedsubreddits', { // Adjusted the API path
+ method: 'GET', 
+credentials: 'include',
+ });
 
-      if (!token) {
-        router.push("/ui/login");
-      }
+ if (response.ok){
+ const data: SavedSubredditResponse = await response.json();
+setSavedSubreddits(data.mySubs);
+} else {
+ const errorData = await response.json();
+setError(errorData.error|| 'An error occurred');
+ }
+ } catch (err) {
+ setError('An error occurred');
+ } finally {
+ setIsLoading(false);
+ }
+ };
 
-      setIsLoading(false); // Set loading to false when authentication is done
-    };
+ fetchSavedSubreddits();
+ }, []);
 
-    checkAuthentication();
-  }, [router]); 
+ // Fetch posts based on saved subreddits
+ useEffect(() => {
+ const fetchPosts = async () => {
+ if (Array.isArray(savedSubreddits)&& savedSubreddits.length> 0) {
+ try {
+ const allPosts = await Promise.all(
+savedSubreddits.map(async(subreddit) => {
+ const response = await fetch(`https://www.reddit.com/r/${subreddit}/top.json?limit=10`);
+const json: RedditApiResponse = await response.json();
+if (json && json.data&& Array.isArray(json.data.children)){
+ return json.data.children.map((child:{ data: RedditPostData }) => child.data);
+} else {
+ return [];
+ }
+ })
+ );
+ setFetchedPosts(allPosts.flat());
+} catch (error) {
+ console.error('Errorfetching posts:', error);
+ }
+ }
+ };
 
-  useEffect(() => {
-    const storedSubreddits = localStorage.getItem("savedSubreddits");
-    if (storedSubreddits) {
-      setSavedSubreddits(JSON.parse(storedSubreddits));
-    }
-  }, []);
+ fetchPosts();
+ }, [savedSubreddits]);
 
-  useEffect(() => {
-    const fetchPosts = async () => {
-      const allPosts: RedditPostData[] = [];
-      for (const subreddit of savedSubreddits) {
-        try {
-          const response = await fetch(
-            `https://www.reddit.com/r/${subreddit}/top.json?limit=10`
-          );
-          const json: RedditApiResponse = await response.json();
-          allPosts.push(...json.data.children.map((child) => child.data));
-        } catch (error) {
-          console.error(error);
-        }
-      }
-      setFetchedPosts(allPosts);
-    };
+ const handleLogout = () => {
+ localStorage.removeItem("jwtToken");
+// router.push("/ui/login"); // Removed
+ };
 
-    if (savedSubreddits.length > 0) {
-      fetchPosts();
-    }
-  }, [savedSubreddits]);
+ const handleCardClick = (postId: string) => {
+ setExpandedPostId(expandedPostId === postId ? null : postId);
+ };
 
-  // Logout function
-  const handleLogout = () => {
-    localStorage.removeItem("jwtToken");
-    router.push("/ui/login");
-  };
+ const handleRemoveSubreddit = (subredditToRemove: string) => {
+ const updatedSubreddits = savedSubreddits.filter(subreddit=> subreddit !== subredditToRemove);
+ setSavedSubreddits(updatedSubreddits);
+ localStorage.setItem('savedSubreddits',JSON.stringify(updatedSubreddits));
+};
 
-  return (
-    <div className="myhome-page">
-      {/* Show loading state */}
-      {isLoading ? (
-        <p>Loading...</p> 
-      ) : (
-        // Show content when not loading
-        <>
-          {/* Your logout button */}
-          <div className="fixed top-4 right-4 z-10">
-            {/* Logout Button */}
-            <div className="fixed top-4 right-4 z-10">
-              <Link
-                href="/ui/login"
-                onClick={handleLogout}
-                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-              >
-                Logout
-              </Link>
-            </div>
-          </div>
+ return (
+ <div className="myhome-page">
+ {isLoading ? (
+ <p>Loading...</p>
+) : (
+ <>
+ <div className="fixed top-4 right-4 z-10">
+ <Link
+ href="/ui/login"
+ onClick={handleLogout}
+ className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+ >
+ Logout
+ </Link>
+ </div>
 
-          <h1 className="text-3xl font-bold mb-4">My Home</h1>
+ <h1 className="text-3xl font-bold mb-4">My Home</h1>
+ <div className ="saved-subreddits-container">
+ <h2 className="text-xl font-semibold mb-2">Saved Subreddits</h2>
+ <ul className="saved-subreddits-list">
+ {Array.isArray(savedSubreddits)&& savedSubreddits.length> 0 ? (
+ savedSubreddits.map((subreddit)=> (
+ <li key={subreddit} className="subreddit-item">
+ <span>{subreddit}</span>
+ <button onClick={() => handleRemoveSubreddit(subreddit)}>Remove</button>
+ </li>
+ ))
+ ) : (
+ <p>No saved subreddits yet.</p>
+)}
+ </ul>
+ </div>
 
-          {/* Your RedditCard components */}
-          <div className="card-grid">
-            {fetchedPosts.map((postData, index) => (
-              <Fragment key={index}>
-                <RedditCard postData={postData} isExpanded={false} onClick={() => { /* ... */ }} />
-              </Fragment>
-            ))}
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
+ <div className="card-grid">
+ {fetchedPosts.map((postData,index) => (
+ <Fragment key={index}>
+ <RedditCard
+ postData={postData}
+ isExpanded={expandedPostId === postData.id}
+onClick={() => handleCardClick(postData.id)}
+/>
+ </Fragment>
+ ))}
+ </div>
+ </>
+ )}
+ </div>
+ );
+};

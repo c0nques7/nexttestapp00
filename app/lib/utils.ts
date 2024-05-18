@@ -72,3 +72,13 @@ export const validateEmail = (email: string): boolean => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Or use a stricter regex 
   return emailRegex.test(email);
 }; 
+
+export async function isValidSubreddit(subreddit: string): Promise<boolean> {
+  try {
+    const response = await fetch(`https://www.reddit.com/r/${subreddit.toLowerCase()}/about.json`);
+    return response.ok;
+  } catch (error) {
+    console.error("Error validating subreddit:", error);
+    return false;
+  }
+}
