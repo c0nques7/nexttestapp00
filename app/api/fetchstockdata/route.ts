@@ -44,10 +44,8 @@ async function fetchStockData(symbol: string | null, userId: string) {
     select: { tickers: true },
   });
 
-  const existingTickers = user?.tickers; 
-  const isTickerAlreadyAdded = existingTickers?.some(
-    (t) => t.symbol === symbol
-  );
+  const existingTickers: { symbol: string }[] = (user?.tickers as Prisma.JsonArray)?.map((ticker) => ticker as { symbol: string }) || []; 
+  const isTickerAlreadyAdded: boolean = existingTickers.some(t => t.symbol === symbol) ?? false;
 
   // Return the data from the API with the flag. 
   return {data: data.results, isTickerAlreadyAdded};
