@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import dotenv from 'dotenv';
+dotenv.config()
 
 interface PolygonAgg {
   t: number; // Unix timestamp in milliseconds
