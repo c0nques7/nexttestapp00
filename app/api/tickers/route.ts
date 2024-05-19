@@ -28,16 +28,16 @@ export async function POST(request: NextRequest) {
         where: { id: userId },
         select: { tickers: true },
       });
-  
+
       if (!user) {
         return NextResponse.json({ error: "User not found" }, { status: 404 });
       }
-  
+
       // Check if the ticker is already in the list
-      if (user.tickers.some(existingTicker => existingTicker === ticker)) {
+      if (user.tickers.some(existingTicker => existingTicker === Ticker)) {
         return NextResponse.json({ error: "Ticker already exists" }, { status: 400 });
       }
-  
+
       const updatedUser = await prisma.user.update({
         where: { id: userId },
         data: {
@@ -75,14 +75,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Invalid token" }, { status: 403 });
     }
     const userId = parseInt(decodedToken.userId, 10) // parse token to int
-    
+
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
         tickers: true,
       },
     });
-    
+
     return NextResponse.json(user?.tickers || []); 
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
