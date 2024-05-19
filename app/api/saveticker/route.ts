@@ -21,43 +21,51 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const newTicker = req.body.ticker;
 
       // ... Input Validation ...
+      if (!newTicker || !newTicker.symbol || !newTicker.data) {
+        return res.status(400).json({ error: 'Invalid ticker data' });
+      }
 
+      
       const updatedUser = await prisma.user.update({
         where: { id: userId },
         data: {
           tickers: {
-            push: newTicker,
+            create: [{
+              symbol: newTicker.symbol,
+              data: newTicker.data,
+            }],
           },
         },
+        include: { tickers: true },
       });
 
       res.status(201).json({ message: 'Ticker added', user: updatedUser });
     } else if (req.method === 'DELETE') {
-        const userId = parseInt(req.query.userId as string, 10);
         const tickerToRemove = req.body.ticker;
     
         try {
-          // 1. Fetch the user's current tickers
           const user = await prisma.user.findUnique({
             where: { id: userId },
             select: { tickers: true },
           });
     
           if (!user) {
-            return res.status(404).json({ error: "User not found" });
+            return res.status(404).json({ error: 'User not found' });
           }
     
-          // 2. Update the user's tickers, removing the specified ticker
-          const updatedUser = await prisma.user.update({
-            where: { id: userId },
-            data: {
-              tickers: {
-                set: user.tickers.filter(t => t !== tickerToRemove) 
-              },
-            },
+          const ticker = await prisma.ticker.findUnique({
+            where: { symbol: tickerToRemove.symbol }
           });
     
-          res.status(200).json({ message: 'Ticker removed', user: updatedUser });
+          if (!ticker) {
+            return res.status(404).json({ error: 'Ticker not found' });
+          }
+          
+          await prisma.ticker.delete({
+            where: { id: ticker.id },
+          });
+    
+          res.status(200).json({ message: 'Ticker removed' });
         } catch (error) {
           res.status(500).json({ error: 'Failed to remove ticker' });
         }
