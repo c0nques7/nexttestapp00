@@ -22,7 +22,6 @@ export async function POST(request: NextRequest) {
     }
 
     const newTicker = await request.json();
-    const userId = session.user?.id; // Get userId from the session
     const tickerSymbol = req.nextUrl.searchParams.get('ticker') as string; 
     try {
       const user = await prisma.user.findUnique({
