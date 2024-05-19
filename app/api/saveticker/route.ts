@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ message: 'Ticker added', user: updatedUser }, { status: 201 });
   } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+    if (error instanceof PrismaClientKnownRequestError) {
       if (error.code === 'P2002') { // Unique constraint
         return NextResponse.json({ error: 'Ticker already exists' }, { status: 409 });
       }
