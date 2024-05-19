@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 403 });
     }
 
-    const { ticker } = await request.json();
+    const newTicker = await request.json();
 
     try {
       const user = await prisma.user.findUnique({
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
         where: { id: userId },
         data: {
           tickers: {
-            push: ticker, // Use "push" to add the new ticker to the array
+            create: [newTicker],
           },
         },
       });
