@@ -1,11 +1,14 @@
-"use client";
+'use client';
 import '@/app/styles/global.css';
 import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
-import TextCard from '../components/TextCard/textcard';
 import PostCard from '../components/PostCard/postcard';
 import FinancialCard from '../components/FinanceCard/financecard';
 import {LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip} from 'recharts';
+import { UserProvider, useUserContext } from '../context/userContext';
+import { useRouter } from 'next/navigation';
+
+
 interface FetchPostsResponse {
   userPosts: {
     id: number;
@@ -18,6 +21,7 @@ interface FetchPostsResponse {
 }
 
 export default function MyHomePage() {
+  const router = useRouter(); 
   const [isTextPostFormOpen, setIsTextPostFormOpen] = useState(false);
   const [textPostContent, setTextPostContent] = useState('');
   const [isTextCardVisible, setIsTextCardVisible] = useState(false);
@@ -32,6 +36,11 @@ export default function MyHomePage() {
   const [stockData, setStockData] = useState<any>(null);
   const [symbol, setSymbol] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [tickers, setTickers] = useState<
+    { data: any; symbol: string }[]
+  >([]); 
+
+
   const fetchStockData = async () => {
     try {
       const response = await fetch(`/api/fetchchart?symbol=${symbol}`);
@@ -46,6 +55,65 @@ export default function MyHomePage() {
       setError('An error occurred while fetching stock data');
     }
   };
+
+  const { userId } = useUserContext();
+
+  const handleAddTicker = () => async (newTickerSymbol: string): Promise<void> => {
+    return new Promise<void>(async (resolve, reject) => { // Wrap the async logic in a promise
+      try {
+        // 1. Fetch existing tickers (now using the userId from the cookie)
+        const response = await fetch(`/api/tickers`, {
+          headers: {
+            "Content-Type": "application/json",
+            // No need to send the token manually here, the cookie should be automatically included
+          },
+        });
+  
+        if (!response.ok) throw new Error("Failed to fetch tickers");
+        const { tickers: existingTickers } = await response.json();
+  
+        // 2. Check if the ticker already exists
+        if (existingTickers && existingTickers.includes(newTickerSymbol)) {
+          throw new Error("Ticker already in the list");
+        }
+  
+        // 3. Fetch stock data for the new symbol
+        const stockResponse = await fetch(
+          `/api/stock-data?symbol=${newTickerSymbol}`
+        );
+        if (!stockResponse.ok) throw new Error("Failed to fetch stock data");
+        const newStockData = await stockResponse.json();
+  
+        // 4. Update the list of tickers
+        const updatedTickers = [...existingTickers, newTickerSymbol];
+  
+        // 5. Send a POST request to update the user's tickers in the database
+        const updateResponse = await fetch(`/api/tickers`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            // No need to send the token manually here, the cookie should be automatically included
+          },
+          body: JSON.stringify({ tickers: updatedTickers }),
+        });
+  
+        if (!updateResponse.ok)
+          throw new Error("Failed to update tickers in the database");
+  
+        // 6. Update the local state
+        setTickers([
+          ...tickers,
+          { data: newStockData, symbol: newTickerSymbol },
+        ]);
+  
+        resolve(); // Resolve the promise
+      } catch (error) {
+        console.error("Error adding ticker:", error);
+        reject(error); // Reject the promise on error
+      }
+    });
+  };
+  
 
   const handleDropdownToggle = () => {
     setIsTextPostFormOpen(!isTextPostFormOpen);
@@ -77,6 +145,8 @@ export default function MyHomePage() {
     }
   };
 
+  
+
   const handleOptionClick = (option: string) => {
     console.log(`Selected option: ${option}`);
     if (option === 'text post') {
@@ -93,6 +163,7 @@ export default function MyHomePage() {
         }
         const responseData: FetchPostsResponse = await response.json();
         setUserPosts(responseData.userPosts);
+        router.refresh();
       } catch (error) {
         console.error("Error fetching user posts:", error);
       }
@@ -102,6 +173,7 @@ export default function MyHomePage() {
   }, []);
 
   return (
+    <UserProvider>
     <div className="myhome-page" style={{ width: '100%' }}>
       {/* Post Dropdown Button & Text Post Form */}
       <div className="flex justify-center w-full"> {/* Add flex container for centering */}
@@ -146,9 +218,10 @@ export default function MyHomePage() {
         </div>
       </div>
       <div className="stock-chart-container"> {/* Container for the stock chart */}
-          {stockData && stockData.length > 0 && ( // Conditionally render the chart
-            <FinancialCard data={stockData} symbol={symbol} />
-          )}
+      <>
+            <FinancialCard data={stockData} symbol={symbol} onAddTicker={handleAddTicker()} />
+          </>
+          
         </div>
 
       {/* Post Cards */}
@@ -163,5 +236,6 @@ export default function MyHomePage() {
         />
       ))}
     </div>
+    </UserProvider>
   );
 }

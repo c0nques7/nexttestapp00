@@ -33,6 +33,7 @@ model User {
   followers      Follow[]    @relation("followedBy")
   moderatorIn    Moderator[]
   flags          Flag[]
+  tickers        String[]
 
   @@map("users")
 }
