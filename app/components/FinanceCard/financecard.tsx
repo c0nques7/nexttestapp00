@@ -15,17 +15,9 @@ const FinancialCard: React.FC<FinancialCardProps> = ({
   symbol,
   onAddTicker,
 }) => {
+  const { userId } = useUserContext(); 
   const nodeRef = useRef(null);
-  const { userId } = useUserContext(); // Call useUserContext here
-
-  const handleAddTicker = async () => {
-    try {
-      await onAddTicker(symbol, userId); // Pass both symbol and userId
-    } catch (error) {
-      console.error("Error adding ticker:", error);
-      // Handle errors appropriately (e.g., display an error message to the user)
-    }
-  };
+  
 
   return (
     <Draggable nodeRef={nodeRef}>
@@ -41,7 +33,7 @@ const FinancialCard: React.FC<FinancialCardProps> = ({
           </LineChart>
         </ResponsiveContainer>
         <button
-          onClick={handleAddTicker}
+          onClick={() => onAddTicker(symbol, userId)} // Make sure to pass the correct arguments 
           className="mt-2 bg-blue-500 text-white px-4 py-2 rounded"
         >
           Add Ticker

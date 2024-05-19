@@ -36,9 +36,7 @@ export default function MyHomePage() {
   const [stockData, setStockData] = useState<any>(null);
   const [symbol, setSymbol] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [tickers, setTickers] = useState<
-    { data: any; symbol: string }[]
-  >([]); 
+  const [tickers, setTickers] = useState<{ data: any; symbol: string }[]>([]);
 
 
   const fetchStockData = async () => {
@@ -58,7 +56,7 @@ export default function MyHomePage() {
 
   const { userId } = useUserContext();
 
-  const handleAddTicker = () => async (newTickerSymbol: string): Promise<void> => {
+  const handleAddTicker = (userId: string ) => async (newTickerSymbol: string): Promise<void> => {
     return new Promise<void>(async (resolve, reject) => { // Wrap the async logic in a promise
       try {
         // 1. Fetch existing tickers (now using the userId from the cookie)
@@ -79,7 +77,7 @@ export default function MyHomePage() {
   
         // 3. Fetch stock data for the new symbol
         const stockResponse = await fetch(
-          `/api/stock-data?symbol=${newTickerSymbol}`
+          `/api/fetchstockdata?symbol=${newTickerSymbol}`
         );
         if (!stockResponse.ok) throw new Error("Failed to fetch stock data");
         const newStockData = await stockResponse.json();
@@ -103,7 +101,7 @@ export default function MyHomePage() {
         // 6. Update the local state
         setTickers([
           ...tickers,
-          { data: newStockData, symbol: newTickerSymbol },
+          { data: newStockData.data, symbol: newTickerSymbol },
         ]);
   
         resolve(); // Resolve the promise
@@ -218,9 +216,9 @@ export default function MyHomePage() {
         </div>
       </div>
       <div className="stock-chart-container"> {/* Container for the stock chart */}
-      <>
-            <FinancialCard data={stockData} symbol={symbol} onAddTicker={handleAddTicker()} />
-          </>
+
+            <FinancialCard data={stockData} symbol={symbol} onAddTicker={handleAddTicker(userId!)} // Pass userId as a prop />
+          />
           
         </div>
 

@@ -5,7 +5,6 @@ import jwt from 'jsonwebtoken'
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const prisma = new PrismaClient();
-// Define your POST handler
 export async function POST(request: NextRequest) {
   const cookieStore = cookies()
     // 1. Get the JWT token from the cookie
@@ -58,7 +57,6 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Define your GET handler
 export async function GET(request: NextRequest) {
   const cookieStore = cookies();
 
