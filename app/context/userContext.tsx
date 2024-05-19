@@ -12,7 +12,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   return (
     <UserContext.Provider value={{ userId, setUserId }}>
-      {children} // Make sure to render the children prop here
+      {children} 
     </UserContext.Provider>
   );
 };
