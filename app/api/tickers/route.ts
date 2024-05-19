@@ -17,12 +17,13 @@ export async function POST(request: NextRequest) {
     // 2. Verify the JWT token
     const decodedToken = jwt.verify(token, JWT_SECRET!) as { userId: string };
     const userId = parseInt(decodedToken.userId, 10);
+    const newTicker = await.request.json();
     if (!decodedToken || !decodedToken.userId) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 403 });
     }
 
     const newTicker = await request.json();
-    const tickerSymbol = req.nextUrl.searchParams.get('ticker') as string; 
+    const tickerSymbol = request.nextUrl.searchParams.get('ticker') as string; 
     try {
       const user = await prisma.user.findUnique({
         where: { id: userId },
