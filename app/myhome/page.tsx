@@ -112,6 +112,7 @@ export default function MyHomePage() {
         setTextPostContent(""); // Clear the content
         setIsTextPostFormOpen(false); // Close the form
         setUserPosts([ data, ...userPosts]); // Add new post to state
+        router.refresh();
       }
     } catch (error) {
       console.error("Error creating post:", error);
@@ -127,6 +128,7 @@ export default function MyHomePage() {
         }
         const responseData: FetchPostsResponse = await response.json();
         setUserPosts(responseData.userPosts);
+        router.refresh();
       } catch (error) {
         console.error("Error fetching user posts:", error);
       }
