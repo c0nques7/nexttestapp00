@@ -34,9 +34,10 @@ export async function POST(request: NextRequest) {
       }
 
       // Check if the ticker is already in the list
-      if (user.tickers.some(existingTicker => existingTicker === tickerSymbol)) {
-        return NextResponse.json({ error: "Ticker already exists" }, { status: 400 });
-      }
+      if (user.tickers.some(existingTicker => existingTicker.symbol === tickerSymbol)) {
+  return NextResponse.json({ error: "Ticker already exists" }, { status: 400 });
+}
+
 
       const updatedUser = await prisma.user.update({
         where: { id: userId },
