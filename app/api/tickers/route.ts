@@ -22,7 +22,8 @@ export async function POST(request: NextRequest) {
     }
 
     const newTicker = await request.json();
-
+    const userId = session.user?.id; // Get userId from the session
+    const tickerSymbol = req.nextUrl.searchParams.get('ticker') as string; 
     try {
       const user = await prisma.user.findUnique({
         where: { id: userId },
@@ -34,7 +35,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Check if the ticker is already in the list
-      if (user.tickers.some(existingTicker => existingTicker === Ticker)) {
+      if (user.tickers.some(existingTicker => existingTicker === tickerSymbol)) {
         return NextResponse.json({ error: "Ticker already exists" }, { status: 400 });
       }
 
