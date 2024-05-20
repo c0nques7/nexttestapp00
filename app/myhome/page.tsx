@@ -32,7 +32,8 @@ export default function MyHomePage() {
   const [symbol, setSymbol] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [tickers, setTickers] = useState<{ data: any; symbol: string }[]>([]);
-
+  const [showChart, setShowChart] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const { userId } = useUserContext();
 
   const fetchStockData = async () => {
@@ -49,44 +50,66 @@ export default function MyHomePage() {
       setError('An error occurred while fetching stock data');
     }
   };
+  
+  const fetchData = async () => {
+    setIsLoading(true);
+    setError(null); // Clear any previous errors
+    await fetchStockData();
+    setIsLoading(false);
+    setShowChart(true);
+  };
 
-  const handleAddTicker = async (newTickerSymbol: string) => {
-    try {
-      // 1. Fetch existing tickers (assuming they're returned in an array format)
-      const response = await fetch(`/api/tickers`, {
-        headers: { "Content-Type": "application/json" },
-      });
+  const handleAddTicker = async (newTickerSymbol: string): Promise<void> => {
+    return new Promise<void>(async (resolve, reject) => { // Wrap the async logic in a promise
+      try {
+        // 1. Fetch existing tickers (now using the userId from the cookie)
+        const response = await fetch(`/api/tickers`); 
 
-      if (!response.ok) throw new Error("Failed to fetch tickers");
-      const { tickers: existingTickers } = await response.json();
+        if (!response.ok) throw new Error("Failed to fetch tickers");
+        const { tickers: existingTickers } = await response.json();
 
-      // 2. Check if the ticker already exists
-      if (existingTickers && existingTickers.some((t: Ticker) => t.symbol === newTickerSymbol)) {
-        throw new Error("Ticker already in the list");
+        // 2. Check if the ticker already exists
+        if (existingTickers && existingTickers.includes(newTickerSymbol)) {
+          throw new Error("Ticker already in the list");
+        }
+
+        // 3. Fetch stock data for the new symbol
+        const stockResponse = await fetch(
+          `/api/fetchstockdata?symbol=${newTickerSymbol}`
+        );
+        if (!stockResponse.ok) throw new Error("Failed to fetch stock data");
+        const newStockData = await stockResponse.json();
+
+        // 4. Update the list of tickers
+        const updatedTickers = existingTickers 
+        ? [...existingTickers, newTickerSymbol]  // Use existingTickers if it's an array
+        : [newTickerSymbol]; // Otherwise, create a new array with the new ticker
+
+
+        // 5. Send a POST request to update the user's tickers in the database
+        const updateResponse = await fetch(`/api/tickers`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ tickers: updatedTickers }),
+        });
+
+        if (!updateResponse.ok)
+          throw new Error("Failed to update tickers in the database");
+
+        // 6. Update the local state
+        setTickers([
+          ...tickers,
+          { data: newStockData.data, symbol: newTickerSymbol },
+        ]);
+
+        resolve(); // Resolve the promise
+      } catch (error) {
+        console.error("Error adding ticker:", error);
+        reject(error); // Reject the promise on error
       }
-
-      // 3. Fetch stock data for the new symbol
-      const stockResponse = await fetch(`/api/fetchstockdata?symbol=${newTickerSymbol}`);
-      if (!stockResponse.ok) throw new Error("Failed to fetch stock data");
-      const newStockData = await stockResponse.json();
-
-      // 4. Update the list of tickers
-      const updatedTickers = [...existingTickers, { symbol: newTickerSymbol, data: newStockData.data }];
-
-      // 5. Send a POST request to update the user's tickers in the database
-      const updateResponse = await fetch(`/api/tickers`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tickers: updatedTickers }),
-      });
-
-      if (!updateResponse.ok) throw new Error("Failed to update tickers in the database");
-
-      // 6. Update the local state
-      setTickers(updatedTickers);
-    } catch (error) {
-      console.error("Error adding ticker:", error);
-    }
+    });
   };
 
   const handleDropdownToggle = () => {
@@ -150,9 +173,10 @@ export default function MyHomePage() {
             onChange={(e) => setSymbol(e.target.value)}
             className="neumorphic-input w-full p-4 rounded-md mb-2"
           />
-          <button onClick={fetchStockData} className="neumorphic-button">
+          <button onClick={fetchData} className="neumorphic-button">
             Fetch Data
           </button>
+          
           <div className="post-dropdown relative">
             <button onClick={handleDropdownToggle} className="neumorphic-button py-2 px-4 rounded">
               Post+
@@ -183,7 +207,8 @@ export default function MyHomePage() {
         </div>
 
         <div className="stock-chart-container">
-          <FinancialCard data={stockData} symbol={symbol} onAddTicker={handleAddTicker} />
+            {/* Conditionally render the FinancialCard */}
+            {showChart && <FinancialCard data={stockData} symbol={symbol} onAddTicker={handleAddTicker} />}
         </div>
 
         {/* Post Cards */}

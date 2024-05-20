@@ -110,7 +110,6 @@ model Follow {
 model Ticker {
   id     Int     @id @default(autoincrement())
   symbol String  @unique
-  data   Json // Assuming your data is in JSON format
   user   User   @relation(fields: [userId], references: [id])
   userId Int
 }

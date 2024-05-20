@@ -138,12 +138,6 @@ padding-right: 10px;
 }
 
 
-@media (prefers-color-scheme: dark) {
-  .neumorphic-button {
-    color: white;        /* dark:text-white */
-  }
-}
-
 .neumorphic-button:focus {
   outline: 2px solid transparent;   /* focus:outline-none */
   outline-offset: 2px;

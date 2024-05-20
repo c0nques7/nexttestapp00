@@ -3,6 +3,8 @@ import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
 import { Prisma, PrismaClient } from "@prisma/client";
 import { User } from "@prisma/client";
+import dotenv from 'dotenv';
+dotenv.config()
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const API_KEY = process.env.POLYGON_API_KEY;
@@ -35,17 +37,17 @@ async function fetchStockData(symbol: string | null, userId: string) {
   }
   
   const parsedUserId = parseInt(userId, 10);
+
   // 4. Check if the ticker is already associated with the user
   const user = await prisma.user.findUnique({
-    
     where: {
-      id: parsedUserId
+      id: parseInt(userId, 10) // Convert userId to number
     },
     select: { tickers: true },
   });
 
-  const existingTickers: { symbol: string }[] = (user?.tickers as Prisma.JsonArray)?.map((ticker) => ticker as { symbol: string }) || []; 
-  const isTickerAlreadyAdded: boolean = existingTickers.some(t => t.symbol === symbol) ?? false;
+  const existingTickers = user?.tickers?? []; // Default to empty array
+  const isTickerAlreadyAdded = existingTickers.some(ticker => ticker.symbol === symbol); // Check if ticker is already added
 
   // Return the data from the API with the flag. 
   return {data: data.results, isTickerAlreadyAdded};
