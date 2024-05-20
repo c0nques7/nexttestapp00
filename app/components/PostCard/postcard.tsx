@@ -11,7 +11,7 @@ const CardSkeleton = () => (
 interface PostCardProps {
   id: number;
   content: string;
-  userId: string;
+  userId: number;
   channel: string;
   timestamp: string;
 }

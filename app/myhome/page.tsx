@@ -17,11 +17,6 @@ interface FetchPostsResponse {
   // Add more properties if needed
 }
 
-interface Ticker {
-  symbol: string;
-  data: any; // Replace `any` with the actual type if known
-}
-
 export default function MyHomePage() {
   const router = useRouter(); 
   const [isTextPostFormOpen, setIsTextPostFormOpen] = useState(false);
@@ -34,7 +29,27 @@ export default function MyHomePage() {
   const [tickers, setTickers] = useState<{ data: any; symbol: string }[]>([]);
   const [showChart, setShowChart] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { userId } = useUserContext();
+  
+  useEffect(() => {
+    const fetchTickers = async () => {
+      try {
+        // Fetch tickers from the database
+        const tickersResponse = await fetch(`/api/tickers`);
+        if (!tickersResponse.ok) {
+          throw new Error('Failed to fetch tickers');
+        }
+        const { tickers } = await tickersResponse.json();
+
+        // Update State (just the tickers, not stockData)
+        setTickers(tickers); // Assuming you're using 'tickers' state to store ticker symbols
+      } catch (error) {
+        console.error('Error fetching tickers:', error);
+        // Handle errors (e.g., set an error state)
+      }
+    };
+
+    fetchTickers();
+  }, []); 
 
   const fetchStockData = async () => {
     // Input Validation
@@ -117,13 +132,18 @@ export default function MyHomePage() {
 
 
         // 5. Send a POST request to update the user's tickers in the database
-        const updateResponse = await fetch(`/api/tickers`, {
+        const updateResponse = await fetch(`/api/tickers?symbol=${newTickerSymbol}`, { 
           method: "POST",
           headers: {
-            "Content-Type": "application/json",
+            "Content-Type": "application/json", // Add this header
           },
-          body: JSON.stringify({ tickers: updatedTickers }),
+          body: JSON.stringify({ symbol: newTickerSymbol }), // Include the symbol in the request body as JSON
         });
+
+        if (!updateResponse.ok) {
+          throw new Error("Failed to update tickers in the database");
+        }
+
 
         if (!updateResponse.ok)
           throw new Error("Failed to update tickers in the database");
@@ -192,70 +212,40 @@ export default function MyHomePage() {
 
   return (
     <UserProvider>
-      <div className="myhome-page" style={{ width: '100%' }}>
-        {/* Post Dropdown Button & Text Post Form */}
-        <div className="flex justify-center w-full">
-          <h2 className="text-xl font-semibold mb-2">Stock Lookup</h2>
-          <input
-            type="text"
-            placeholder="Enter stock symbol (e.g., AAPL)"
-            value={symbol}
-            onChange={(e) => setSymbol(e.target.value)}
-            className="neumorphic-input w-full p-4 rounded-md mb-2"
-          />
-          <button 
-          onClick={fetchData} 
-          className="neumorphic-button"
-          disabled={!symbol.trim()} // Disable if symbol is empty or whitespace
-        >
-          {isLoading ? 'Fetching...' : 'Fetch Data'}
-        </button>
-          
-          <div className="post-dropdown relative">
-            <button onClick={handleDropdownToggle} className="neumorphic-button py-2 px-4 rounded">
-              Post+
+      <div className="myhome-page flex flex-col"> {/* Removed inline style */}
+        <div className="stocklookup w-full justify-center gap-4 mb-4">  {/* Added gap for spacing */}
+            <h2 className="text-xl font-semibold mb-2">Stock Lookup</h2>
+            <input 
+              type="text"
+              placeholder="Enter stock symbol (e.g., AAPL)"
+              value={symbol}
+              onChange={(e) => setSymbol(e.target.value)}
+              className="neumorphic-input p-4 rounded-md mb-2"
+            />
+            <button
+              onClick={fetchData}
+              className="neumorphic-button"
+              disabled={!symbol.trim()}
+            >
+              {isLoading ? 'Fetching...' : 'Fetch Data'}
             </button>
-
-            {/* Conditionally render the dropdown content */}
-            {isDropdownOpen && (
-              <div className="dropdown-content absolute mt-2 w-full neumorphic p-4 rounded-lg shadow-md">
-                <p onClick={() => handleAddTicker('text post')}>Text Post</p>
-              </div>
-            )}
-
-            {/* Text Post Form (conditionally rendered) */}
-            {isTextPostFormOpen && (
-              <div className="neumorphic-container p-4 rounded-lg mt-4 transition-all duration-300 ease-in-out overflow-hidden max-h-96">
-                <textarea
-                  value={textPostContent}
-                  onChange={(e) => setTextPostContent(e.target.value)}
-                  placeholder="Enter your text post content..."
-                  className="neumorphic-input w-full h-32 p-4 rounded-md mb-2"
-                />
-                <button onClick={handleSubmitTextPost} className="neumorphic-button">
-                  Submit
-                </button>
-              </div>
-            )}
-          </div>
         </div>
 
+        {/* Stock Chart Container */}
+        <div className="flex-grow">
         <div className="stock-chart-container">
-            {/* Conditionally render the FinancialCard */}
-            {showChart && <FinancialCard data={stockData} symbol={symbol} onAddTicker={handleAddTicker} />}
+          {showChart && (
+            <FinancialCard data={stockData} symbol={symbol} onAddTicker={handleAddTicker} />
+          )}
+        </div>
         </div>
 
         {/* Post Cards */}
-        {userPosts && userPosts.length > 0 && userPosts.map((userPost, index) => (
-          <PostCard
-            key={index}
-            id={userPost.id}
-            content={userPost.content}
-            userId={userPost.userId.toString()}
-            channel={userPost.channel}
-            timestamp={userPost.timestamp}
-          />
-        ))}
+          <div className="flex flex-col gap-4 mt-4"> {/* Added flex-col and margin */}
+            {userPosts.map((userPost, index) => (
+              <PostCard key={index} {...userPost} /> // Spread props for cleaner code
+            ))}
+          </div>
       </div>
     </UserProvider>
   );

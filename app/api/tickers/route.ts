@@ -6,8 +6,6 @@ import jwt from 'jsonwebtoken'
 const JWT_SECRET = process.env.JWT_SECRET;
 const prisma = new PrismaClient();
 export async function POST(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const symbol = searchParams.get("symbol")?.toUpperCase();
   try {
     // 1. Extract JWT from Cookie
     const cookieStore = cookies();
@@ -26,12 +24,18 @@ export async function POST(request: NextRequest) {
 
     const userId = parseInt(decodedToken.userId, 10);
 
-    // 3. Get Ticker Symbol from Request Body
-    const { ticker } = await request.json();
+    // 3. Get Ticker Symbol from Search Body
+    const { searchParams } = new URL(request.url);
+    const ticker = searchParams.get("symbol")?.toUpperCase();
     console.log("here's the ticker: ", ticker);
-    let stockData = null;
+    
 
-    // 4. Check if Ticker Exists for the User
+    /// 4. Input Validation
+    if (!ticker) { 
+      return NextResponse.json({ error: "Invalid ticker symbol" }, { status: 400 });
+    }
+
+    // 5. Check if Ticker Exists for the User
     const existingTicker = await prisma.ticker.findFirst({
       where: { userId, symbol: ticker },
     });
@@ -40,19 +44,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Ticker already exists" }, { status: 400 });
     }
 
-    // 5. Create New Ticker (assuming `stockData.data` is fetched elsewhere)
-    const newTicker = await prisma.ticker.create({
-      data: { 
-        symbol: ticker.toUpperCase(), 
-        userId,
+    // 6. Create New Ticker (assuming `stockData.data` is fetched elsewhere)
+    await prisma.ticker.create({
+      data: {
+        symbol: ticker,
+        user: { connect: { id: userId } },
       },
     });
 
-    // 6. Return Success Response
-    return NextResponse.json({ message: "Ticker added", ticker: newTicker });
+    // 7. Return Success Response
+    return NextResponse.json({ message: "Ticker added", ticker });
 
   } catch (error: any) {
-    // 7. Handle Specific Errors 
+    // 8. Handle Specific Errors 
     if (error.name === 'JsonWebTokenError') {
       return NextResponse.json({ error: 'Invalid token' }, { status: 403 });
     }
@@ -66,29 +70,33 @@ export async function GET(request: NextRequest) {
   const cookieStore = cookies();
 
   try {
-    // 1. Get the JWT token from the cookie
+    // 1. Get and Verify JWT
     const token = cookieStore.get("token")?.value;
-
     if (!token) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // 2. Verify the JWT token
     const decodedToken = jwt.verify(token, JWT_SECRET!) as { userId: string };
-
     if (!decodedToken || !decodedToken.userId) {
       return NextResponse.json({ error: "Invalid token" }, { status: 403 });
     }
-    const userId = parseInt(decodedToken.userId, 10) // parse token to int
+    const userId = parseInt(decodedToken.userId, 10);
 
+    // 2. Fetch User with Tickers (Optimized Query)
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: {
-        tickers: true,
+      include: { 
+        tickers: true,  // Eagerly load tickers in a single query
       },
     });
 
-    return NextResponse.json(user?.tickers || []); 
+    // 3. Handle User Not Found
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    // 4. Return Tickers (or Empty Array if None)
+    return NextResponse.json(user.tickers || []); 
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       // Prisma-specific known request errors

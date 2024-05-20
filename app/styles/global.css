@@ -2,26 +2,46 @@ main {
   display: flex; /* Enable flexbox */
   min-height: 100vh; /* Fill viewport height */
   width: 100%;
-  flex-direction: column; /* Vertical layout */
+  flex-direction: row; /* Vertical layout */
   justify-content: center; /* Center vertically */
 }
 
 body {
-  font-family: 'Inter', sans-serif; /* Or your chosen font */
-  background-color: #89d28e;
+  font-family: 'Inter', sans-serif; 
+  background-color: #D2DBEE; /* Light blue background */
 }
 
 .flex { /* Or whatever your container's class is */
   display: flex; /* Enable flexbox */
   flex-direction: row; /* Stack items vertically */
-  align-items: center; /* Center horizontally (already done) */
-  justify-content: center; /* NEW: Center vertically */
+  align-items: flex-start; /* Center horizontally (already done) */
+  flex-wrap: wrap;;
 }
+
+.stocklookup {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+
+.neumorphic {
+  height: 100px;
+  background: #D2DBEE; 
+  border-radius: 25px;
+  box-shadow: 
+   inset 8px 8px 16px #B5C1D3, /* Darker inner shadow */
+   inset -8px -8px 16px #F0F4FF; /* Lighter outer shadow */
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
 
 .neumorphic.fin-card {
   width: fit-content;
   height: fit-content;
-   background: #afd29c;
+   background: #D2DBEE;
    border-radius: 25px;
    margin: 15px;
   text-align: center;
@@ -29,32 +49,24 @@ body {
   border-radius: 15%;
   color: whitesmoke;
   font-size: 20px;
-  background: #89d28e;
+  background: #D2DBEE;
     padding: 5px 0;
     padding-right: 20px;
     max-width: 550px;
     margin: 50px auto;
     border-radius: 25px;
-    box-shadow: inset 9.91px 9.91px 15px #7DBF81, inset -9.91px -9.91px 15px #95E59B;
+    box-shadow: inset 9.91px 9.91px 15px #B5C1D3, inset -9.91px -9.91px 15px #F0F4FF;
 
 }
 
 
-/* Neumorphic Base Styles */
-.neumorphic {
-height: 100px;
-background: #89d28e;
-border-radius: 25px;
-box-shadow: inset 18.62px 18.62px 15px #7DBF81, inset -18.62px -18.62px 15px #95E59B;
-padding-left: 10px;
-padding-right: 10px;
-}
+
 
 .neumorphic.login {
   height: 75px;
-  background: #89d28e;
+  background: #D2DBEE;
   border-radius: 25px;
-  box-shadow: inset 18.62px 18.62px 15px #7DBF81, inset -18.62px -18.62px 15px #95E59B;
+  box-shadow: inset 18.62px 18.62px 15px #B5C1D3, inset -18.62px -18.62px 15px #F0F4FF;
   padding-left: 10px;
   padding-right: 10px;
   }
@@ -64,7 +76,7 @@ padding-right: 10px;
   cursor: pointer;
   width: 350px;
   height: 300px;
-   background: #afd29c;
+   background: #D2DBEE;
    border-radius: 25px;
    margin: 15px;
   text-align: center;
@@ -72,12 +84,12 @@ padding-right: 10px;
   border-radius: 15%;
   color: whitesmoke;
   font-size: 20px;
-  background: #89d28e;
+  background: #D2DBEE;
     padding: 5px 0;
     max-width: 550px;
     margin: 50px auto;
     border-radius: 25px;
-    box-shadow: inset 9.91px 9.91px 15px #7DBF81, inset -9.91px -9.91px 15px #95E59B;
+    box-shadow: inset 9.91px 9.91px 15px #B5C1D3, inset -9.91px -9.91px 15px #F0F4FF;
 }
 
 .neumorphic.post-card:hover {
@@ -85,10 +97,8 @@ padding-right: 10px;
 }
 
 .neumorphic.post-card:active {
-  box-shadow: 5px 5px 10px 2.5px rgba(18, 158, 18, 0.2),
-              -5px -5px 10px 2.5px rgba(0, 150, 0, 0.3),
-              -1px -1px 4px 2px rgba(0, 150, 0, 0.4);
-  background: #5f945f; /* Dark green for active state */
+  box-shadow: inset 4px 4px 8px #B5C1D3, inset -4px -4px 8px #F0F4FF;
+  background: #B5C1D3; /* Darker active state */
 }
 
 .neumorphic.post-card:active i {
@@ -97,7 +107,7 @@ padding-right: 10px;
 }
 
 .neumorphic-button {
-  background-color: #89d28e;
+  background-color: #D2DBEE;
   margin-left: 15px;
   position: relative;
   display: inline-flex;
@@ -109,32 +119,32 @@ padding-right: 10px;
   font-weight: 500;
   color: #262626; /* Use original darker text color */
   border-radius: 0.5rem;
-  box-shadow: 12.62px 14.62px 15px #4c774f, -15.62px -15.62px 15px #95E59B;
+  box-shadow: 12.62px 14.62px 15px #B5C1D3, -15.62px -15.62px 15px #F0F4FF;
   transition: box-shadow 0.2s ease-in-out, transform 0.2s ease-in-out;
 }
 
 .neumorphic-button.login {
-  background-color: #89d28e;
+  background-color: #D2DBEE;
   margin-top: 15px;
   margin-left: 15px;
   padding: 1rem 2rem;
   border-radius: 0.5rem;
-  box-shadow: 2px 2px 2px #517C54, 2px 2px 2px #C1FFC8;
+  box-shadow: 2px 2px 2px #B5C1D3, 2px 2px 2px #F0F4FF;
   transition: box-shadow 0.2s ease-in-out, transform 0.2s ease-in-out;
 }
 
 .neumorphic-button:hover {
   box-shadow:
-    12px 12px 24px #50814c, /* Increased size and blur */
-    -8px -8px 16px #5e8656; /* Slightly decreased */
-  transform: translateY(-4px); /* Increase lift */
+    12px 12px 24px #B5C1D3, /* Increased size and blur */
+    -8px -8px 16px #F0F4FF; /* Slightly decreased */
+  transform: translateY(-2px); /* Increase lift */
 }
 
 .neumorphic-button:active {
   box-shadow: 
-    2px 2px 4px #839b6a,  /* Decreased size and blur */
-    -2px -2px 4px #c4d7b2; /* Slightly increased */
-  transform: translateY(2px); /* Push down */
+    2px 2px 4px #B5C1D3,  /* Decreased size and blur */
+    -2px -2px 4px #F0F4FF; /* Slightly increased */
+  transform: translateY(1px); /* Push down */
 }
 
 

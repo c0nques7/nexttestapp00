@@ -33,7 +33,7 @@ const FinancialCard: React.FC<FinancialCardProps> = ({
           </LineChart>
         </ResponsiveContainer>
         <button
-          onClick={() => onAddTicker(symbol, userId)} // Make sure to pass the correct arguments 
+          onClick={() => onAddTicker(symbol, userId.toString())} // Make sure to pass the correct arguments 
           className="mt-2 bg-blue-500 text-white px-4 py-2 rounded"
         >
           Add Ticker

@@ -34,6 +34,7 @@ model User {
   moderatorIn    Moderator[]
   flags          Flag[]
   tickers   Ticker[] // One-to-Many relation
+  settings  Json? 
 
   @@map("users")
 }
