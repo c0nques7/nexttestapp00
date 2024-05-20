@@ -37,17 +37,47 @@ export default function MyHomePage() {
   const { userId } = useUserContext();
 
   const fetchStockData = async () => {
+    // Input Validation
+    if (!symbol.trim()) { // Check if symbol is empty or contains only whitespace
+      setError("Please enter a stock symbol.");
+      return; // Don't proceed if the symbol is invalid
+    }
+
+    setIsLoading(true);
+    setError(null); // Clear previous errors
+    
     try {
       const response = await fetch(`/api/fetchchart?symbol=${symbol}`);
-      const data = await response.json();
-      if (response.ok) {
-        setStockData(data);
-      } else {
-        setError(data.error || 'Failed to fetch stock data');
+      
+      // Handle HTTP errors (4xx, 5xx)
+      if (!response.ok) {
+        try {
+          const errorData = await response.json();
+          setError(errorData.error || "Failed to fetch stock data");
+        } catch (jsonError) {
+          setError(`Failed to fetch stock data (${response.status})`);
+        }
+        return; 
       }
+
+      const data = await response.json();
+
+      // Handle potential API changes or unexpected data format
+      if (!data || !Array.isArray(data)) {
+        setError("Invalid stock data format");
+        return;
+      }
+
+      setStockData(data);
+      
+      
+
     } catch (error) {
       console.error("Error fetching stock data:", error);
-      setError('An error occurred while fetching stock data');
+      setError("An error occurred while fetching stock data");
+    } finally {
+      setIsLoading(false);
+      setShowChart(true); // Show the chart even if there's an error
     }
   };
   
@@ -173,9 +203,13 @@ export default function MyHomePage() {
             onChange={(e) => setSymbol(e.target.value)}
             className="neumorphic-input w-full p-4 rounded-md mb-2"
           />
-          <button onClick={fetchData} className="neumorphic-button">
-            Fetch Data
-          </button>
+          <button 
+          onClick={fetchData} 
+          className="neumorphic-button"
+          disabled={!symbol.trim()} // Disable if symbol is empty or whitespace
+        >
+          {isLoading ? 'Fetching...' : 'Fetch Data'}
+        </button>
           
           <div className="post-dropdown relative">
             <button onClick={handleDropdownToggle} className="neumorphic-button py-2 px-4 rounded">
