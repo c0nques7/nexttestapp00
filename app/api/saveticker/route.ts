@@ -28,7 +28,6 @@ export async function POST(request: NextRequest) {
     const ticker = await prisma.ticker.create({
       data: {
         symbol: newTicker.symbol,
-        data: newTicker.data,
         user: {
           connect: { id: userId }, // Connect the new ticker to the user
         },
