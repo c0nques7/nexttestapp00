@@ -24,13 +24,19 @@ export async function GET(request: NextRequest) {
         const userPosts = await prisma.post.findMany({
             where: {
                 userId: userId,
+                isPublic: true,
             },
             select: {
                 id: true,
-                content: true, // Include the content field
-                userId: true,
-                channel: true,
-                timestamp: true,
+            content: true,
+            userId: true,
+            channel: true,
+            timestamp: true,
+            postType: true, // Add this line
+            mediaUrl: true, // Add if needed
+                },
+            orderBy: {
+                timestamp: 'desc',
             },
             
         });

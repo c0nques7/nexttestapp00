@@ -185,3 +185,209 @@ body {
   transition: all 0.2s ease;
   color: #333; /* Default text color */
 }
+
+.neumorphic-sidebar {
+  background-color: #D2DBEE; /* Match main content */
+  width: 60px; /* Collapsed width */
+  height: 100vh;
+  position: fixed; /* Stays in place on scroll */
+  top: 0;
+  right: 0;
+  box-shadow:
+      inset 8px 8px 16px #B5C1D3, 
+      inset -8px -8px 16px #F0F4FF;
+  border-radius: 0 25px 25px 0; /* Rounded on the expanding side only */
+  overflow: hidden; /* Hide overflowing content when collapsed */
+  transition: width 0.3s ease-in-out; /* Smooth transition */
+  z-index: 3;
+}
+
+.neumorphic-sidebar.expanded {
+  width: 250px; /* Expanded width */
+}
+
+/* Sidebar Content */
+.sidebar-content {
+  margin-top: 40px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Sidebar Links (customize appearance as needed) */
+.sidebar-link {
+  color: #262626; 
+  text-decoration: none;
+  font-weight: 500;
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow:
+      inset 2px 2px 5px #d1d9e6,
+      inset -2px -2px 5px #ffffff;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.sidebar-link:hover {
+  background-color: #c5ccd9; /* Subtle background on hover */
+}
+
+/* Hide content initially (show when expanded) */
+.sidebar-content > *:not(.menu-button) {
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.neumorphic-sidebar.expanded .sidebar-content > *:not(.menu-button) {
+  opacity: 1;
+}
+
+/* Menu Button */
+.menu-button {
+  background-color: #D2DBEE;
+  margin-left: 15px;
+  margin-bottom: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px; /* Initial width */
+  padding: 8px; /* Initial padding */
+  overflow: hidden;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #262626; /* Use original darker text color */
+  border-radius: 0.5rem;
+  box-shadow: 12.62px 14.62px 15px #B5C1D3, -15.62px -15.62px 15px #F0F4FF;
+  transition: box-shadow 0.2s ease-in-out, transform 0.2s ease-in-out;
+  position: absolute; /* Position at the top of the sidebar */
+  top: 10px; 
+  right: 10px;
+}
+
+/* Toggle Switch Container */
+.wrap__toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.wrap__toggle--setting {
+  font-weight: 500;
+}
+
+/* Toggle Switch Styles */
+.checkBox {
+  display: none;
+}
+
+.slider {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 20px;
+  background-color: #ccc;
+  border-radius: 10px; 
+  transition: background-color 0.4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  transition: transform 0.4s;
+  border-radius: 50%;
+}
+
+.checkBox:checked + .slider {
+  background-color: #2196F3;
+}
+
+.checkBox:checked + .slider:before {
+  transform: translateX(20px);
+}
+
+/* Neumorphic Styling */
+.neumorphic-toggle:checked + .neumorphic-slider {
+  box-shadow:
+    inset 2px 2px 5px #B5C1D3, 
+    inset -2px -2px 5px #F0F4FF;
+}
+
+.neumorphic-toggle:focus + .neumorphic-slider {
+  box-shadow: 0 0 1px 2px #2196F3; 
+}
+
+/* Modal Overlay */
+.modal {
+  display: block; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 100; /* Sit on top of other elements */
+  left: 0;
+  top: 0;
+  width: 100%; 
+  height: 100%; 
+  overflow: auto; 
+  background-color: rgba(0, 0, 0, 0.4); /* Black w/ opacity */
+}
+
+/* Modal Content Box */
+.modal-content {
+  background-color: #D2DBEE; /* Match your app's background */
+  margin: 15% auto; /* 15% from the top and centered */
+  padding: 20px;
+  border: none; /* Remove default border */
+  border-radius: 25px;   /* Neumorphic rounded corners */
+  width: 80%; /* Could be fixed width or responsive */
+  box-shadow:  
+    12px 12px 24px #B5C1D3,
+    -8px -8px 16px #F0F4FF;  /* Deeper shadows for modal */
+}
+
+/* Close Button */
+.close-button {
+  color: #262626; /* Dark grey */
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close-button:hover,
+.close-button:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* Form Elements within Modal */
+.modal-content input[type="text"],
+.modal-content textarea,
+.modal-content button {
+  /* Apply your Neumorphic input/button styles here */
+  margin-bottom: 10px; /* Add spacing between elements */
+}
+
+/* Error Message Styling */
+.error-message {
+  color: red;
+  font-size: 14px;
+  margin-top: 5px;
+}
+
+.video-container {
+  position: relative;
+  padding-bottom: 56.25%; /* 16:9 aspect ratio */
+  height: 0;
+  overflow: hidden;
+}
+
+.video-container iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}

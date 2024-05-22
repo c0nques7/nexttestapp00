@@ -124,6 +124,6 @@ enum Role {
 
 enum PostType {
   TEXT
-  PICTURE
+  IMAGE
   VIDEO
 }
