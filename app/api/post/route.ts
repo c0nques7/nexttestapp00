@@ -1,4 +1,4 @@
-import { PostType, PrismaClient } from '@prisma/client';
+import { ContentProvider, PostType, PrismaClient } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
@@ -9,6 +9,7 @@ const prisma = new PrismaClient();
 
 interface CreatePostRequestBody {
     content: string;
+    contentProvider: "PEAKEFEED";
     channelId?: number;  // Optional channel ID
     isPublic?: boolean;  // Optional visibility
     postType: PostType;    // Assuming a string enum (e.g., "TEXT", "IMAGE", "VIDEO")
@@ -48,6 +49,7 @@ interface CreatePostRequestBody {
       const post = await prisma.post.create({
         data: {
           content: postData.content,
+          contentProvider: ContentProvider.PEAKEFEED,
           postType: postData.postType,
           isPublic: postData.isPublic || true,
           mediaUrl: postData.mediaUrl,

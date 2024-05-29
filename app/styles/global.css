@@ -25,6 +25,57 @@ body {
   flex-wrap: wrap;
 }
 
+/* Card Container */
+.reddit-card {
+  width: fit-content;
+  height: fit-content;
+   background: #D2DBEE;
+   border-radius: 25px;
+   margin: 15px;
+  text-align: center;
+  box-sizing: border-box;
+  border-radius: 15%;
+  color: whitesmoke;
+  font-size: 20px;
+  background: #D2DBEE;
+    padding: 5px 0;
+    padding-right: 20px;
+    max-width: 550px;
+    margin: 50px auto;
+    border-radius: 25px;
+    box-shadow: inset 9.91px 9.91px 15px #B5C1D3, inset -9.91px -9.91px 15px #F0F4FF;
+}
+
+/* Inner Card for Flipping */
+.reddit-card-inner {
+  background-color: #e2e8f0; /* Background color */
+  position: relative;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  transition: transform 0.8s;
+  transform-style: preserve-3d;
+  border-radius: 25px; /* Neumorphic rounded corners */
+  box-shadow:
+    15px 15px 30px #b8c5d6, /* Outer shadow (lighter) */
+    -15px -15px 30px #ffffff; /* Inner shadow (darker) */
+}
+
+/* Front of the Card */
+.front {
+  backface-visibility: hidden;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Expanded Card State */
+.card.expanded .card-inner {
+  transform: rotateY(180deg); /* Flip the card */
+}
+
 
 .neumorphic {
   height: 100px;
@@ -60,6 +111,19 @@ body {
 }
 
 
+.neumorphic.landing {
+  display: flex; /* Enable Flexbox for easy alignment */
+  justify-content: center; /* Horizontally center items */
+  align-items: center;
+  height: 100px;
+  background: #D2DBEE; 
+  border-radius: 25px;
+  box-shadow: 
+   inset 8px 8px 16px #B5C1D3, /* Darker inner shadow */
+   inset -8px -8px 16px #F0F4FF; /* Lighter outer shadow */
+  padding-left: 10px;
+  padding-right: 10px;
+}
 
 
 .neumorphic.login {

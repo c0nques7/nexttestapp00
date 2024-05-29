@@ -49,6 +49,7 @@ model Post {
   timestamp      DateTime  @default(now())
   isPublic       Boolean   @default(true)
   postType       PostType
+  contentProvider       ContentProvider 
   mediaUrl       String?
   transactionHash String?  @unique
   votes          Vote[]
@@ -126,4 +127,15 @@ enum PostType {
   TEXT
   IMAGE
   VIDEO
+}
+
+enum ContentProvider {
+  YOUTUBE
+  INSTAGRAM
+  TWITTER
+  FACEBOOK
+  REDDIT
+  TELEGRAM
+  SPOTIFY
+  PEAKEFEED
 }

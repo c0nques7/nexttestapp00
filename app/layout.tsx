@@ -9,7 +9,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-gray-100">
-        <div className="min-h-screen flex flex-col items-center justify-center"> {/* Full-height container */}
+        <div className="min-h-screen flex flex-col"> {/* Full-height container */}
           <header className=""> {/* Neumorphic header */}
             {/* Your header content (e.g., logo, navigation) goes here */}
           </header>

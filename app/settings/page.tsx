@@ -10,7 +10,8 @@ export default function SettingsPage() {
   const [settings, setSettings] = useState<{
     theme: string;
     isStockSearchEnabled: boolean;
-  }>({ theme: "light", isStockSearchEnabled: true }); 
+    isRedditSearchEnabled: boolean;
+  }>({ theme: "light", isStockSearchEnabled: true, isRedditSearchEnabled: false }); 
   const [isLoading, setIsLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const router = useRouter();
@@ -105,6 +106,15 @@ export default function SettingsPage() {
                 [key]: newValue, // Update the specific setting dynamically
               });
               handleSaveSettings(); // Save settings to the API immediately 
+            }}
+          />
+          <ToggleSwitch
+            label="Enable Reddit Search"
+            settingKey="isRedditSearchEnabled"
+            initialValue={settings.isRedditSearchEnabled}
+            onSaveSettings={(key, newValue) => {
+              setSettings({ ...settings, [key]: newValue });
+              handleSaveSettings(); 
             }}
           />
 
