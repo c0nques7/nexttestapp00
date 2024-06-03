@@ -8,6 +8,8 @@ import CreatePost from '../components/CreatePost/createpost';
 import { PostType, ContentProvider } from '@prisma/client';
 import { RedditPostData, RedditApiResponse } from '../lib/types';
 import RedditCard from '../components/RedditCard/redditcard';
+import AddIcon from '@mui/icons-material/Add';
+import Fab from '@mui/material/Fab';
 import { CardPositionsProvider, useCardPositions } from '/root/newapp00/nexttestapp00/app/context/cardPositionsContext.tsx';
 
 interface FetchPostsResponse {
@@ -50,7 +52,7 @@ export default function MyHomePage() {
   const [stockData, setStockData] = useState<any>(null);
   const [symbol, setSymbol] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [tickers, setTickers] = useState<{ symbol: string; data: any }[]>([]);
+  const [tickers, setTickers] = useState<Array<{symbol: string}>>([]);
   const [showChart, setShowChart] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -62,6 +64,7 @@ export default function MyHomePage() {
   const [expandedPostId, setExpandedPostId] = useState<number | null>(null);
   const [expandedPostIdString, setExpandedPostIdString] = useState<string | null>(null);
   const { resetPositions } = useCardPositions();
+  const [tickerSymbols, setTickerSymbols] = useState<string>(""); // Use string for ticker symbols
   const savedSubreddits = ["popular", "pics", "reactjs", "javascript", "programming"];
 
   useEffect(() => {
@@ -84,7 +87,9 @@ export default function MyHomePage() {
       } catch (error) {
         console.error("Error fetching user posts:", error);
       } finally {
+        router.refresh();
         setIsLoading(false);
+        
       }
     };
 
@@ -123,15 +128,28 @@ export default function MyHomePage() {
 
   useEffect(() => {
     const fetchTickers = async () => {
+      setIsLoading(true);
+      setError(null);
+
       try {
-        const tickersResponse = await fetch(`/api/tickers`);
-        if (!tickersResponse.ok) {
-          throw new Error('Failed to fetch tickers');
+        const response = await fetch('/api/tickers');
+        if (!response.ok) {
+          throw new Error('Failed to fetch tickers: ' + response.statusText);
         }
-        const { tickers } = await tickersResponse.json();
-        setTickers(tickers ?? []);;
+
+        const data = await response.json();
+
+        if (data && typeof data.symbols === 'string') {
+          setTickerSymbols(data.symbols); // Directly set the comma-separated string
+        } else {
+          console.error('Invalid ticker data format:', data);
+          setError('Invalid ticker data from server.');
+        }
       } catch (error) {
         console.error('Error fetching tickers:', error);
+        setError('An error occurred while fetching tickers.');
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -175,46 +193,14 @@ export default function MyHomePage() {
   };
 
   const handleAddTicker = async (newTickerSymbol: string): Promise<void> => {
-    return new Promise<void>(async (resolve, reject) => {
-      try {
-        const response = await fetch(`/api/tickers`);
-        if (!response.ok) throw new Error("Failed to fetch tickers");
-        const { tickers: existingTickers } = await response.json();
-
-        if (existingTickers && existingTickers.includes(newTickerSymbol)) {
-          throw new Error("Ticker already in the list");
-        }
-
-        const stockResponse = await fetch(`/api/fetchstockdata?symbol=${newTickerSymbol}`);
-        if (!stockResponse.ok) throw new Error("Failed to fetch stock data");
-        const newStockData = await stockResponse.json();
-
-        const updatedTickers = existingTickers ? [...existingTickers, newTickerSymbol] : [newTickerSymbol];
-
-        const updateResponse = await fetch(`/api/tickers?symbol=${newTickerSymbol}`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ symbol: newTickerSymbol }),
-        });
-
-        if (!updateResponse.ok) throw new Error("Failed to update tickers in the database");
-
-        setTickers([...tickers, { data: newStockData.data, symbol: newTickerSymbol }]);
-
-        resolve();
-      } catch (error) {
-        console.error("Error adding ticker:", error);
-        reject(error);
-      }
-    });
   };
 
   const handleDropdownToggle = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
 
+
+  
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
@@ -240,12 +226,21 @@ export default function MyHomePage() {
     }
   };
 
-  const handleCardClick = () => {
+  const handleCardClick = (postType: PostType) => {
+    if (postType === PostType.TEXT || postType === PostType.IMAGE || postType === PostType.VIDEO) {
+      console.log("Post Type:", postType);
+    } else {
+      console.error("Invalid Post Type:", postType);
+    }
   };
 
   return (
     <CardPositionsProvider>
       <div className="myhome-page flex flex-col">
+      {isLoading ? ( // Conditional rendering based on isLoading
+          <p className="text-center text-lg">Loading...</p> // Display loading message
+        ) : (
+          <>
         <div className={`neumorphic-sidebar ${isSidebarOpen ? 'expanded' : ''}`}>
           <button className="menu-button" onClick={toggleSidebar}>☰</button>
           <div className="sidebar-content">
@@ -254,6 +249,8 @@ export default function MyHomePage() {
             <a href="/settings" className="sidebar-link">Settings</a>
           </div>
         </div>
+
+        <button className="neumorphic-button" onClick={resetPositions}>Reset Card Positions</button>
 
         {isRedditSearchEnabled && (
           <div className="redditsearch w-full justify-center gap-4 mb-4">
@@ -271,27 +268,27 @@ export default function MyHomePage() {
           </div>
         )}
 
-        {isStockSearchEnabled && (
-          <div className="stocksearch w-full justify-center gap-4 mb-4">
-            <h2 className="text-xl font-semibold mb-4">Search for Stock Ticker</h2>
-            <div className="stocksearch-header flex justify-center items-center">
-              <input
-                type="text"
-                value={symbol}
-                onChange={(e) => setSymbol(e.target.value)}
-                placeholder="Enter stock symbol"
-                className="stock-input"
-              />
-              <button onClick={fetchStockData} className="nuemorphic-button">Search</button>
+          {isStockSearchEnabled && (
+            <div className="stock-search-bar-container neumorphic">
+              <h2 className="text-xl font-semibold mb-4">Search for Stock Symbol</h2>
+              <div className="stocksearch-header flex"> {/* Removed justify-center and items-center, since it's handled by the container */}
+                <input
+                  type="text"
+                  value={symbol}
+                  onChange={(e) => setSymbol(e.target.value)}
+                  placeholder="Enter stock symbol"
+                  className="neumorphic-input" 
+                />
+                <button onClick={fetchStockData} className="neumorphic-button">
+                  Search
+                </button>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+          
 
         <div className="posts-container w-full justify-center gap-4 mb-4">
-          {isLoading ? (
-            <p>Loading posts...</p>
-          ) : (
-            userPosts.map((post) => (
+          {userPosts.map((post) => (
               <PostCard
               key={post.id}
               id={post.id.toString()}
@@ -303,30 +300,33 @@ export default function MyHomePage() {
               mediaUrl={post.mediaUrl}
               expanded={expandedPostId === post.id}
               onCardClick={handleCardClick}
-              
               />
             ))
-          )}
+          }
         </div>
+
+        
 
         <div className="financial-cards-container w-full justify-center gap-4 mb-4">
-        {tickers.length > 0 && tickers.map((ticker) => (
-                    <FinanceCard
-                      key={ticker.symbol}
-                      symbol={ticker.symbol}
-                      data={ticker.data}
-                      onAddTicker={handleAddTicker}
-                    />
-                  ))}
+            {tickers.map((ticker) => ( 
+              <FinanceCard data={stockData} key={ticker.symbol} symbol={ticker.symbol} onAddTicker={handleAddTicker} /> 
+            ))}
+            {showChart && stockData && (
+              <FinanceCard symbol={symbol} data={stockData} onAddTicker={handleAddTicker} />
+            )}
         </div>
 
-        <button className="neumorphic-button" onClick={handleOpenCreatePostModal}>
-          Create Post
-        </button>
-        <button className="neumorphic-button" onClick={resetPositions}>Reset Card Positions</button>
+        
+
+        <Fab className="fab-bottom-right" onClick={handleOpenCreatePostModal}>
+        <AddIcon />
+        </Fab>        
 
         {showCreatePostModal && (
           <CreatePost onClose={handleCloseCreatePostModal} onPostCreated={handlePostCreated} />
+        )}
+
+        </>
         )}
       </div>
     </CardPositionsProvider>

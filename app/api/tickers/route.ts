@@ -68,35 +68,30 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   const cookieStore = cookies();
+  const token = cookieStore.get("token")?.value;
+  const JWT_SECRET = process.env.JWT_SECRET || "";
+
+  if (!token) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   try {
-    // 1. Get and Verify JWT
-    const token = cookieStore.get("token")?.value;
-    if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // Verify the token 
+    const decoded = jwt.verify(token, JWT_SECRET) as unknown as { userId: number };
+
+    if (!decoded || typeof decoded !== "object" || typeof decoded.userId !== "number") {
+      throw new jwt.JsonWebTokenError("Invalid token");
     }
 
-    const decodedToken = jwt.verify(token, JWT_SECRET!) as { userId: string };
-    if (!decodedToken || !decodedToken.userId) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 403 });
-    }
-    const userId = parseInt(decodedToken.userId, 10);
-
-    // 2. Fetch User with Tickers (Optimized Query)
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      include: { 
-        tickers: true,  // Eagerly load tickers in a single query
-      },
+    // Fetch ticker symbols for the authenticated user
+    const tickers = await prisma.ticker.findMany({
+      where: { userId: decoded.userId },
+      select: { symbol: true }, // Select only the symbol column
     });
 
-    // 3. Handle User Not Found
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
-    // 4. Return Tickers (or Empty Array if None)
-    return NextResponse.json(user.tickers || []); 
+    // Extract symbols and join them into a comma-separated string
+    const symbols = tickers.map(ticker => ticker.symbol).join(", ");
+    return NextResponse.json({ symbols }); 
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       // Prisma-specific known request errors

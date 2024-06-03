@@ -5,7 +5,7 @@ import { useUserContext } from '@/app/context/userContext';
 
 
 interface FinancialCardProps {
-  data: { date: number; close: number }[];
+  data?: { date: number; close: number }[];
   symbol: string;
   onAddTicker: (newTickerSymbol: string, userId: string) => Promise<void>;
 }

@@ -6,6 +6,7 @@ import Draggable from 'react-draggable';
 import moment from 'moment';
 import parse from 'html-react-parser';
 import { useCardPositions } from '/root/newapp00/nexttestapp00/app/context/cardPositionsContext.tsx';
+import { PostType } from '@prisma/client';
 
 const CardSkeleton = () => (
   <div className="rounded-xl bg-gray-200 h-64 animate-pulse"></div>
@@ -23,14 +24,14 @@ interface PostCardProps {
   userId: number;
   channel: string;
   timestamp: string;
-  postType: 'TEXT' | 'IMAGE' | 'VIDEO';
+  postType: PostType;
   mediaUrl?: string;
-  onCardClick: (postId: string) => void;
+  onCardClick: (postType: PostType) => void;
   expanded: boolean;
 }
 
 const PostCard = ({
-  id, content, userId, channel, timestamp, postType, mediaUrl
+  id, onCardClick, content, userId, channel, timestamp, postType, mediaUrl
 }: PostCardProps) => {
   const nodeRef = useRef(null);
   const formattedTimestamp = moment(timestamp).fromNow();
@@ -45,12 +46,15 @@ const PostCard = ({
         return <p>{parse(content)}</p>;
       case 'IMAGE':
         return mediaUrl ? (
+          <div className="image-container"> 
           <Image
             src={mediaUrl}
             alt="Post Image"
-            width={500}
+            width={300}
             height={300}
+            className="post-image" // Apply a class for styling
           />
+        </div>
         ) : null;
         case 'VIDEO':
           if (!mediaUrl) {
@@ -82,19 +86,24 @@ const PostCard = ({
 };
 
   return (
-    <Draggable nodeRef={nodeRef} onStop={handleDragStop}
-    defaultPosition={cardPositions[id.toString()] || { x: 0, y: 0 }}>
-      <div ref={nodeRef} className="neumorphic post-card">
-        <div>
-          <p>
-            <b>{userId}</b> @{channel} - {formattedTimestamp}
-          </p>
-        </div>
-        
-        {renderPostContent()}
+    <div onClick={() => onCardClick(postType)}>
+        <Draggable
+          nodeRef={nodeRef}
+          onStop={handleDragStop}
+          defaultPosition={cardPositions[id.toString()] || { x: 0, y: 0 }}
+        >
+          <div ref={nodeRef} className="neumorphic post-card">
+            <div>
+              <p>
+                <b>{userId}</b> @{channel} - {formattedTimestamp}
+              </p>
+            </div>
+
+            {renderPostContent()}
+          </div>
+        </Draggable>
       </div>
-    </Draggable>
-  );
-};
+    );
+  };
 
 export default PostCard;
