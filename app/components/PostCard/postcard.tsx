@@ -5,11 +5,17 @@ import Image from "next/image";
 import Draggable from 'react-draggable';
 import moment from 'moment';
 import parse from 'html-react-parser';
-
+import { useCardPositions } from '/root/newapp00/nexttestapp00/app/context/cardPositionsContext.tsx';
 
 const CardSkeleton = () => (
   <div className="rounded-xl bg-gray-200 h-64 animate-pulse"></div>
 );
+
+export interface CardPosition {
+  x: number;
+  y: number;
+
+}
 
 interface PostCardProps {
   id: string;
@@ -17,8 +23,10 @@ interface PostCardProps {
   userId: number;
   channel: string;
   timestamp: string;
-  postType: 'TEXT' | 'IMAGE' | 'VIDEO';  
-  mediaUrl?: string; 
+  postType: 'TEXT' | 'IMAGE' | 'VIDEO';
+  mediaUrl?: string;
+  onCardClick: (postId: string) => void;
+  expanded: boolean;
 }
 
 const PostCard = ({
@@ -26,7 +34,11 @@ const PostCard = ({
 }: PostCardProps) => {
   const nodeRef = useRef(null);
   const formattedTimestamp = moment(timestamp).fromNow();
+  const { cardPositions, setCardPosition } = useCardPositions();
 
+  const handleDragStop = (e: any, data: any) => {
+    setCardPosition(String(id), { x: data.x, y: data.y });
+  };
   const renderPostContent = () => {
     switch (postType) {
       case 'TEXT':
@@ -70,7 +82,8 @@ const PostCard = ({
 };
 
   return (
-    <Draggable nodeRef={nodeRef}>
+    <Draggable nodeRef={nodeRef} onStop={handleDragStop}
+    defaultPosition={cardPositions[id.toString()] || { x: 0, y: 0 }}>
       <div ref={nodeRef} className="neumorphic post-card">
         <div>
           <p>
