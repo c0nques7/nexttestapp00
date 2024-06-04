@@ -1,5 +1,5 @@
 ## PeakeFeed
-Overview
+
 PeakeFeed is a dynamic web application designed to consolidate and display various types of content in a visually engaging way. It integrates with a backend API to fetch user posts, financial data (stock tickers), and Reddit content. The frontend is built using React and Next.js, allowing for interactive user experiences like draggable cards and dynamic content loading.
 Features
  * User Posts:  Display user-generated content, including text, images, and videos, fetched from a backend API.
