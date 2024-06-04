@@ -277,7 +277,7 @@ export default function MyHomePage() {
                   value={symbol}
                   onChange={(e) => setSymbol(e.target.value)}
                   placeholder="Enter stock symbol"
-                  className="neumorphic-input" 
+                  className="stock-search-bar-container" 
                 />
                 <button onClick={fetchStockData} className="neumorphic-button">
                   Search

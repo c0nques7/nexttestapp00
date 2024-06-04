@@ -2,7 +2,13 @@ import React, { useState, useRef } from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from 'recharts';
 import Draggable from 'react-draggable';
 import { useUserContext } from '@/app/context/userContext';
+import { useCardPositions } from '@/app/context/cardPositionsContext';
 
+export interface CardPosition {
+  x: number;
+  y: number;
+
+}
 
 interface FinancialCardProps {
   data?: { date: number; close: number }[];
@@ -15,12 +21,26 @@ const FinancialCard: React.FC<FinancialCardProps> = ({
   symbol,
   onAddTicker,
 }) => {
-  const { userId } = useUserContext(); 
+  const { userId } = useUserContext();
   const nodeRef = useRef(null);
+  const { cardPositions, setCardPosition } = useCardPositions();
+
+  // State to manage this card's position
+  const [position, setPosition] = useState<CardPosition>(
+    cardPositions[symbol] || { x: 0, y: 0 } // Default directly in the state
+  );
+
+  const handleDragStop = (e: any, data: any) => {
+    setPosition({ x: data.x, y: data.y });
+    setCardPosition(symbol, { x: data.x, y: data.y });
+  };
   
 
   return (
-    <Draggable nodeRef={nodeRef}>
+    <Draggable 
+    nodeRef={nodeRef}
+    onStop={handleDragStop}
+    position={position}>
       <div ref={nodeRef} className="neumorphic fin-card p-4 rounded-lg">
         <h2 className="text-lg font-semibold mb-2">{symbol} - 1 Year Chart</h2>
         <ResponsiveContainer width={450} height={250}>
@@ -34,7 +54,7 @@ const FinancialCard: React.FC<FinancialCardProps> = ({
         </ResponsiveContainer>
         <button
           onClick={() => onAddTicker(symbol, userId.toString())} // Make sure to pass the correct arguments 
-          className="mt-2 bg-blue-500 text-white px-4 py-2 rounded"
+          className="neumorphic-button mt-2 bg-blue-500 text-white px-4 py-2 rounded"
         >
           Add Ticker
         </button>

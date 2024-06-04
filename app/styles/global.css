@@ -73,14 +73,16 @@ body {
 
 
 .neumorphic {
-  height: 100px;
+  height: auto;
   background: #D2DBEE; 
   border-radius: 25px;
+  margin: auto;
   box-shadow: 
    inset 8px 8px 16px #B5C1D3, /* Darker inner shadow */
    inset -8px -8px 16px #F0F4FF; /* Lighter outer shadow */
   padding-left: 10px;
   padding-right: 10px;
+  padding-bottom: 10px;
 }
 
 
@@ -242,7 +244,40 @@ body {
 }
 
 /* Search Button (Neumorphic) */
+.stock-search-bar-container button {
+  background-color: #ffffff; /* White background */
+  padding: 10px 15px;
+  border-radius: 0 0.5rem 0.5rem 0; /* Rounded corners on right */
+  box-shadow:
+    -3px -3px 6px #ffffff,
+     3px  3px 6px #d1d9e6;
+  transition: all 0.2s ease;
+  color: #333; /* Default text color */
+}
+
+/* Search Input (Neumorphic) */
+.stock-search-bar-container input[type="text"] {
+  background-color: #ffffff;
+  padding: 10px;
+  border-radius: 0.5rem 0 0 0.5rem; /* Rounded corners on left */
+  box-shadow:
+    inset 2px 2px 5px #d1d9e6,
+    inset -2px -2px 5px #ffffff;
+}
+
+/* Search Button (Neumorphic) */
 .search-bar-container button {
+  background-color: #ffffff; /* White background */
+  padding: 10px 15px;
+  border-radius: 0 0.5rem 0.5rem 0; /* Rounded corners on right */
+  box-shadow:
+    -3px -3px 6px #ffffff,
+     3px  3px 6px #d1d9e6;
+  transition: all 0.2s ease;
+  color: #333; /* Default text color */
+}
+/* Search Button (Neumorphic) */
+.stock-search-bar-container button {
   background-color: #ffffff; /* White background */
   padding: 10px 15px;
   border-radius: 0 0.5rem 0.5rem 0; /* Rounded corners on right */
