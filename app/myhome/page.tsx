@@ -10,7 +10,7 @@ import { RedditPostData, RedditApiResponse } from '../lib/types';
 import RedditCard from '../components/RedditCard/redditcard';
 import AddIcon from '@mui/icons-material/Add';
 import Fab from '@mui/material/Fab';
-import { CardPositionsProvider, useCardPositions } from '/root/newapp00/nexttestapp00/app/context/cardPositionsContext.tsx';
+import { CardPositionsProvider, useCardPositions } from '@/app/context/cardPositionsContext';
 
 interface FetchPostsResponse {
   userPosts: {
