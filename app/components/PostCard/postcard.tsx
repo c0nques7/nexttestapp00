@@ -5,7 +5,7 @@ import Image from "next/image";
 import Draggable from 'react-draggable';
 import moment from 'moment';
 import parse from 'html-react-parser';
-import { useCardPositions } from '@/app/context/cardPositionsContext.tsx';
+import { useCardPositions } from '@/app/context/cardPositionsContext';
 import { PostType } from '@prisma/client';
 
 const CardSkeleton = () => (
