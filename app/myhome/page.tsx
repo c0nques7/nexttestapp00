@@ -254,8 +254,8 @@ export default function MyHomePage() {
   return (
     <CardPositionsProvider>
       <div className="myhome-page flex flex-col">
-      {isLoading ? ( // Conditional rendering based on isLoading
-          <p className="text-center text-lg">Loading...</p> // Display loading message
+      {isLoading ? ( 
+          <p className="text-center text-lg">Loading...</p>
         ) : (
           <>
         <div className={`neumorphic-sidebar ${isSidebarOpen ? 'expanded' : ''}`}>
