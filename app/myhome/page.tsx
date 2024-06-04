@@ -64,8 +64,12 @@ export default function MyHomePage() {
   const [expandedPostId, setExpandedPostId] = useState<number | null>(null);
   const [expandedPostIdString, setExpandedPostIdString] = useState<string | null>(null);
   const { resetPositions } = useCardPositions();
-  const [tickerSymbols, setTickerSymbols] = useState<string>(""); // Use string for ticker symbols
+  const [tickerSymbols, setTickerSymbols] = useState<string[]>([]); // Use string for ticker symbols
   const savedSubreddits = ["popular", "pics", "reactjs", "javascript", "programming"];
+  const [newTicker, setNewTicker] = useState('');
+  const [addTickerResponse, setAddTickerResponse] = useState<
+  { message: string } | { error: string } | null
+>(null);
 
   useEffect(() => {
     const fetchUserPosts = async () => { 
@@ -128,33 +132,28 @@ export default function MyHomePage() {
 
   useEffect(() => {
     const fetchTickers = async () => {
-      setIsLoading(true);
-      setError(null);
-
       try {
-        const response = await fetch('/api/tickers');
-        if (!response.ok) {
-          throw new Error('Failed to fetch tickers: ' + response.statusText);
-        }
+        const response = await fetch('/api/tickers'); 
+        if (response.ok) {
+          const data = await response.json();
 
-        const data = await response.json();
-
-        if (data && typeof data.symbols === 'string') {
-          setTickerSymbols(data.symbols); // Directly set the comma-separated string
+          // Split the symbols string into an array before setting the state
+          if (typeof data.symbols === 'string') {  
+            setTickerSymbols(data.symbols.split(',').map((symbol: string) => symbol.trim())); // Trim any extra spaces
+          } else {
+            console.error('Invalid data format for symbols:', data.symbols);
+            // Handle the error appropriately (e.g., show a default message)
+          }
         } else {
-          console.error('Invalid ticker data format:', data);
-          setError('Invalid ticker data from server.');
+          console.error('Failed to fetch tickers');
         }
       } catch (error) {
         console.error('Error fetching tickers:', error);
-        setError('An error occurred while fetching tickers.');
-      } finally {
-        setIsLoading(false);
       }
     };
 
     fetchTickers();
-  }, []);
+  }, []); 
 
   const fetchStockData = async () => {
     if (!symbol.trim()) {
@@ -192,8 +191,26 @@ export default function MyHomePage() {
     setShowChart(true);
   };
 
-  const handleAddTicker = async (newTickerSymbol: string): Promise<void> => {
+  const handleAddTicker = async () => {
+    try {
+      const response = await fetch(`/api/tickers?symbol=${encodeURIComponent(newTicker)}`, {
+        method: 'POST',
+      }); // Cookies will be automatically sent if present
+  
+      if (response.ok) {
+        const data = await response.json();
+        setAddTickerResponse(data);
+        setNewTicker(''); 
+      } else {
+        const errorData = await response.json();
+        setAddTickerResponse(errorData);
+      }
+    } catch (error) {
+      console.error('Error adding ticker:', error);
+      setAddTickerResponse({ error: 'Failed to add ticker' }); 
+    }
   };
+
 
   const handleDropdownToggle = () => {
     setIsDropdownOpen(!isDropdownOpen);
@@ -308,13 +325,16 @@ export default function MyHomePage() {
         
 
         <div className="financial-cards-container w-full justify-center gap-4 mb-4">
-            {tickers.map((ticker) => ( 
-              <FinanceCard data={stockData} key={ticker.symbol} symbol={ticker.symbol} onAddTicker={handleAddTicker} /> 
-            ))}
+            {isStockSearchEnabled && (<div>{tickerSymbols.map((symbol) => ( 
+              <FinanceCard data={stockData} key={symbol} symbol={symbol} onAddTicker={handleAddTicker} /> 
+              ))}
+            </div>
+            )}
             {showChart && stockData && (
               <FinanceCard symbol={symbol} data={stockData} onAddTicker={handleAddTicker} />
             )}
         </div>
+
 
         
 

@@ -45,9 +45,9 @@ const FinancialCard: React.FC<FinancialCardProps> = ({
         <h2 className="text-lg font-semibold mb-2">{symbol} - 1 Year Chart</h2>
         <ResponsiveContainer width={450} height={250}>
           <LineChart width={450} height={250} data={data}>
-            <CartesianGrid strokeDasharray="3 3" />
+          <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="date" />
-            <YAxis />
+            <YAxis domain={['dataMin', 'dataMax']} />  {/* Updated YAxis */}
             <Tooltip />
             <Line type="monotone" dataKey="close" stroke="#8884d8" />
           </LineChart>
