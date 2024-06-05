@@ -29,6 +29,7 @@ Technical Stack
    * Reddit API
 
 Project Structure
+
 app/
 ├── components/          
 │   ├── FinanceCard/    
