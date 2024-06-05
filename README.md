@@ -27,6 +27,7 @@ Technical Stack
  * External APIs:
    * Financial data API (e.g., Alpha Vantage, Finnhub)
    * Reddit API
+
 Project Structure
 app/
 ├── components/          
