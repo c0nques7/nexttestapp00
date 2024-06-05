@@ -31,6 +31,7 @@ Technical Stack
 Project Structure
 
 app/
+
 ├── components/          
 │   ├── FinanceCard/    
 │   ├── PostCard/       
