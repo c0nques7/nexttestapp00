@@ -10,6 +10,7 @@ import ReactPlayer from 'react-player/lazy';
 import { MdOpenWith } from 'react-icons/md';
 import { Rnd } from 'react-rnd';
 import { useDrag, usePinch} from '@use-gesture/react';
+import { BiReset } from 'react-icons/bi';
 
 const CardSkeleton = () => (
   <div className="rounded-xl bg-gray-200 h-64 animate-pulse"></div>
@@ -48,11 +49,12 @@ const PostCard = ({
   const [zIndex, setZIndex] = useState(index + 1)
   const [position, setPosition] = useState({x: 0, y: 0});
   const [scale, setScale] = useState(1);
-  
+  const [isReset, setIsReset] = useState(false); 
   const initialPosition = cardPositions[id.toString()] || {
     x: (index * (370)) % containerWidth, // Wrap horizontally 
     y: Math.floor(index * 370 / containerWidth) * 370, // Wrap vertically
   };
+  const [isResettable, setIsResettable] = useState(false);
 
   useEffect(() => {
     if (!cardPositions[id.toString()]) {
@@ -63,21 +65,24 @@ const PostCard = ({
 
   
   const handleDragStop = (e: any, data: any) => {
-    setCardPosition(String(id), { x: data.x, y: data.y }); // Update both x and y
-  };
-  const handleResizeStart = () => setIsResizing(true);
-  const handleResizeStop = (e: any, direction: any, ref: any, delta: any, position: any) => {
-        // Ensure the icon stays inside the card
-        const newWidth = Math.max(ref.offsetWidth, 50); // Minimum card width (adjust as needed)
-        const newHeight = Math.max(ref.offsetHeight, 50); // Minimum card height (adjust as needed)
+        setPosition({ x: data.x, y: data.y });
+        setCardPosition(id, { x: data.x, y: data.y });
+        setIsResettable(true); // Enable reset icon after dragging
+    };
+ 
+    const handleResizeStart = () => setIsResizing(true);
+    const handleResizeStop = (e: any, direction: any, ref: any, delta: any, position: any) => {
+        const newWidth = Math.max(ref.offsetWidth, 50);
+        const newHeight = Math.max(ref.offsetHeight, 50);
 
         setCardSize({
             width: newWidth,
             height: newHeight,
         });
-        setCardPosition(String(id), position); // Update position after resizing
+        setCardPosition(id, position);
         setIsResizing(false);
-    }; 
+        setIsResettable(true);
+    };
 
 
   const renderPostContent = () => {
@@ -125,8 +130,13 @@ const PostCard = ({
   }
 };
 
-const originalSize = { width: 350, height: 350 };
-// Calculate initial position inside the component
+const resetPositionAndSize = () => {
+  // Reset to the initial size and position
+  setCardSize({ width: 350, height: 350 });
+  setPosition({ x: 0, y: 0 });             // Reset to origin (0, 0)
+    setCardPosition(id, { x: 0, y: 0 });
+  setIsResettable(false); // Disable reset icon
+};
 
 useEffect(() => {
   if (!cardPositions[id.toString()]) {
@@ -135,7 +145,7 @@ useEffect(() => {
   }
 }, [id, initialPosition]);
 const handleDoubleClick = () => {
-  setCardSize(originalSize); // Reset to original size
+  setCardSize({ width: 350, height: 350 }); // Reset to original size
 };
 const handleCardClick = () => {
   setIsSelected(!isSelected);
@@ -238,6 +248,12 @@ return (
           height: cardSize.height,
         }}
       >
+        {isResettable && ( // Conditionally render reset icon
+                        <button className="neumorphic-reset-icon" onClick={resetPositionAndSize}>
+                        <BiReset />
+                      </button>
+                    )}
+
         {/* Card Content */}
         <div>
           <p>

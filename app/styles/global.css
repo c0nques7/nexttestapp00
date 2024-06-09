@@ -184,19 +184,60 @@ body {
 }
 .resize-handle {
   position: absolute;
-  bottom: 0;
-  right: 0;
-  padding: 10px;       /* Or adjust padding as needed */
+  bottom: 5px;         /* Adjusted for better visual balance */
+  right: 5px;
+  width: 30px;         /* Slightly larger size */
+  height: 30px;
+  border-radius: 50%;   /* Circular shape */
+  background-color: #e2e8f0; /* Background matches the card inner */
+  box-shadow: 
+    6px 6px 12px #b8c5d6, /* Outer shadow (lighter) - same as card */
+    -6px -6px 12px #ffffff; /* Inner shadow (darker) - same as card */
   cursor: nwse-resize;
   z-index: 15;
-  display: flex;             /* Make resize-handle a flex container */
-  align-items: center;       /* Vertically center the icon */
-  justify-content: center;   /* Horizontally center the icon */
-  background-color: rgba(0, 0, 0, 0.2);
+  display: flex; 
+  align-items: center;
+  justify-content: center;
+  transition: box-shadow 0.2s ease; /* Add transition for smoother hover effect */
 }
 
 .resize-handle:hover {
-  outline: 2px solid #007bff; /* Blue outline on the icon */
+  box-shadow:
+    3px 3px 6px #b8c5d6,  /* Subtler shadow on hover */
+    -3px -3px 6px #ffffff;
+}
+
+.resize-handle svg {
+  fill: #718096; /* Adjust icon color to your preference */
+}
+
+.neumorphic-reset-icon {
+  position: absolute;
+  top: 10px; 
+  right: 10px; 
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  background-color: #e2e8f0;  /* Updated background to match card inner */
+  box-shadow: 
+    6px 6px 12px #b8c5d6,   /* Use same shadow as card for consistency */
+    -6px -6px 12px #ffffff; /* Use same shadow as card for consistency */
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: box-shadow 0.2s ease; 
+}
+
+.neumorphic-reset-icon:hover {
+  box-shadow:
+    3px 3px 6px #b8c5d6, 
+    -3px -3px 6px #ffffff; /* Slightly adjusted shadow for hover */
+}
+
+.neumorphic-reset-icon svg {
+  fill: #718096; /* Adjust icon color as needed */
 }
 
 .neumorphic.post-card:hover {
