@@ -1,6 +1,6 @@
 "use client";
 import '@/app/styles/global.css';
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, createRef, RefObject } from "react";
 import Image from "next/image";
 import moment from 'moment';
 import parse from 'html-react-parser';
@@ -9,6 +9,7 @@ import { PostType } from '@prisma/client';
 import ReactPlayer from 'react-player/lazy';
 import { MdOpenWith } from 'react-icons/md';
 import { Rnd } from 'react-rnd';
+import { useDrag, usePinch } from '@use-gesture/react';
 
 const CardSkeleton = () => (
   <div className="rounded-xl bg-gray-200 h-64 animate-pulse"></div>
@@ -37,14 +38,19 @@ interface PostCardProps {
 const PostCard = ({
   id, index, onCardClick, containerWidth, content, userId, channel, timestamp, postType, mediaUrl,
 }: PostCardProps) => {
+  const postCardRef = createRef<HTMLDivElement>();
   const nodeRef = useRef<Rnd>(null);
   const formattedTimestamp = moment(timestamp).fromNow();
-  const { cardPositions, setCardPosition, resetPositions} = useCardPositions();
+  const { cardPositions, setCardPosition} = useCardPositions();
   const [cardSize, setCardSize] = useState({ width: 350, height: 350 }); // Initial size
   const [isResizing, setIsResizing] = useState(false);
   const [isSelected, setIsSelected] = useState(false);
   const [zIndex, setZIndex] = useState(index + 1)
-
+  const [position, setPosition] = useState(
+    cardPositions[id.toString()] || { x: 0, y: 0 }
+  );
+  const [scale, setScale] = useState(1);
+  
   const handleDragStop = (e: any, data: any) => {
     setCardPosition(String(id), { x: data.x, y: data.y }); // Update both x and y
   };
@@ -128,6 +134,36 @@ const handleCardClick = () => {
   setIsSelected(!isSelected);
 };
 
+  // Drag gesture with @use-gesture/react
+  const bind = useDrag(
+    ({ down, movement: [x, y] }) => {
+      if (!isResizing) {
+        setPosition({ x: down ? x + initialPosition.x : position.x, y: down ? y + initialPosition.y : position.y });
+
+        if (!down) {
+          setCardPosition(String(id), position); // Update context after drag
+        }
+      }
+    }
+  );
+
+  const bindPinch = usePinch(
+    ({ first, movement: [d], offset: [s] }) => {
+        if (first) setIsResizing(true);
+
+        setScale(s); // Set the scale from the offset
+
+        const newWidth = Math.max(cardSize.width + d, 50);
+        const newHeight = Math.max(cardSize.height + d, 50);
+        setCardSize({ width: newWidth, height: newHeight });
+
+        if (!first) {
+          setIsResizing(false);
+          setCardPosition(String(id), position); // Update context after resize
+        }
+      }
+  );
+
 useEffect(() => {
   if (isSelected) {
     setZIndex(1000); // Bring the selected card to the front
@@ -135,10 +171,9 @@ useEffect(() => {
     setZIndex(index + 1); // Reset to the original zIndex when not selected
   }
 }, [isSelected, index]); // Dependency array includes isSelected and index
+
 return (
-  <div 
-  className={`post-item ${isSelected ? "selected" : ""}`}
-  >
+  <div className={`post-item ${isSelected ? "selected" : ""}`} {...bind} {...bindPinch}>
     <Rnd
       ref={nodeRef}
       size={cardSize}
@@ -152,8 +187,20 @@ return (
     >
       <div 
         className="neumorphic post-card" 
-        style={{ width: cardSize.width, height: cardSize.height }}
-        onClick={handleCardClick}
+        style={{
+          // Apply drag and pinch transforms
+          transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
+          width: cardSize.width,
+          height: cardSize.height,
+        }}
+        {...bind()}
+        onClick={(e) => {
+          const target = e.target as Element; // Type assertion to Element
+      
+          if (!target.closest('.resize-handle') && !isResizing) {
+              onCardClick(postType);
+          }
+      }}
       >
         {/* Card Content */}
         <div>

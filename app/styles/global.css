@@ -594,3 +594,9 @@ body {
     box-shadow: 0 0 20px 10px rgba(0, 123, 255, 0.8); /* Brighter on full glow */
   }
 }
+
+@media (max-width: 768px) { 
+  .post-card {
+    width: 90vw;  /* Example: Use viewport width for card width */
+    margin: 10px auto; /* Center card */
+  }}
