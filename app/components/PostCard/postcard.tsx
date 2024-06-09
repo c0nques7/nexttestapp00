@@ -1,8 +1,7 @@
 "use client";
 import '@/app/styles/global.css';
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
-import Draggable from 'react-draggable';
 import moment from 'moment';
 import parse from 'html-react-parser';
 import { useCardPositions } from '@/app/context/cardPositionsContext';
@@ -31,32 +30,38 @@ interface PostCardProps {
   mediaUrl?: string;
   onCardClick: (postType: PostType) => void;
   expanded: boolean;
+  index: number; 
+  containerWidth: number;
 }
 
 const PostCard = ({
-  id, onCardClick, content, userId, channel, timestamp, postType, mediaUrl
+  id, index, onCardClick, containerWidth, content, userId, channel, timestamp, postType, mediaUrl,
 }: PostCardProps) => {
   const nodeRef = useRef<Rnd>(null);
   const formattedTimestamp = moment(timestamp).fromNow();
-  const { cardPositions, setCardPosition } = useCardPositions();
+  const { cardPositions, setCardPosition, resetPositions} = useCardPositions();
   const [cardSize, setCardSize] = useState({ width: 350, height: 350 }); // Initial size
   const [isResizing, setIsResizing] = useState(false);
-  
+  const [isSelected, setIsSelected] = useState(false);
+  const [zIndex, setZIndex] = useState(index + 1)
+
   const handleDragStop = (e: any, data: any) => {
-    setCardPosition(String(id), { x: data.x, y: data.y });
+    setCardPosition(String(id), { x: data.x, y: data.y }); // Update both x and y
   };
+  const handleResizeStart = () => setIsResizing(true);
+  const handleResizeStop = (e: any, direction: any, ref: any, delta: any, position: any) => {
+        // Ensure the icon stays inside the card
+        const newWidth = Math.max(ref.offsetWidth, 50); // Minimum card width (adjust as needed)
+        const newHeight = Math.max(ref.offsetHeight, 50); // Minimum card height (adjust as needed)
 
-  const handleResize = (e: any, direction: any, ref: any, delta: any, position: any) => {
-    // Ensure the icon stays inside the card
-    const newWidth = Math.max(ref.offsetWidth, 50); // Minimum card width (adjust as needed)
-    const newHeight = Math.max(ref.offsetHeight, 50); // Minimum card height (adjust as needed)
+        setCardSize({
+            width: newWidth,
+            height: newHeight,
+        });
+        setCardPosition(String(id), position); // Update position after resizing
+        setIsResizing(false);
+    }; 
 
-    setCardSize({
-        width: newWidth,
-        height: newHeight,
-    });
-    setCardPosition(String(id), position); // Update position after resizing
-};
 
   const renderPostContent = () => {
     switch (postType) {
@@ -103,51 +108,73 @@ const PostCard = ({
   }
 };
 
-const handleResizeStart = () => {
-  setIsResizing(true);
+const originalSize = { width: 350, height: 350 };
+// Calculate initial position inside the component
+const initialPosition = cardPositions[id.toString()] || {
+  x: (index * 370) % containerWidth, // Wrap horizontally 
+  y: Math.floor(index * 370 / containerWidth) * 370, // Wrap vertically
 };
 
-const handleResizeStop = (e: any, direction: any, ref: any, delta: any, position: any) => {
-  setCardSize({
-      width: ref.offsetWidth,
-      height: ref.offsetHeight,
-  });
-  setCardPosition(String(id), position); // Update position after resizing
-  setIsResizing(false);
+useEffect(() => {
+  if (!cardPositions[id.toString()]) {
+    // If no position is stored, use the default
+    setCardPosition(String(id), initialPosition);
+  }
+}, [id, initialPosition]);
+const handleDoubleClick = () => {
+  setCardSize(originalSize); // Reset to original size
+};
+const handleCardClick = () => {
+  setIsSelected(!isSelected);
 };
 
-
+useEffect(() => {
+  if (isSelected) {
+    setZIndex(1000); // Bring the selected card to the front
+  } else {
+    setZIndex(index + 1); // Reset to the original zIndex when not selected
+  }
+}, [isSelected, index]); // Dependency array includes isSelected and index
 return (
-  <div onClick={() => onCardClick(postType)} className="post-item">
-      <Rnd
-          ref={nodeRef}
-          size={cardSize}
-          position={cardPositions[id.toString()] || { x: 0, y: 0 }}
-          onDragStop={(e, d) => handleDragStop(e, d)}
-          onResizeStop={handleResize}
-          enableResizing={{ 
-              top: false,
-              right: false,
-              bottom: false,
-              left: false,
-              topRight: false,
-              bottomLeft: false,
-              bottomRight: true,
-              topLeft: false 
-          }}
+  <div 
+  className={`post-item ${isSelected ? "selected" : ""}`}
+  >
+    <Rnd
+      ref={nodeRef}
+      size={cardSize}
+      position={initialPosition}
+      onDragStop={handleDragStop}
+      onResizeStart={handleResizeStart}
+      onResizeStop={handleResizeStop}
+      enableResizing={{ bottomRight: true }}
+      onDoubleClick={handleDoubleClick}
+      style={{ zIndex }}
+    >
+      <div 
+        className="neumorphic post-card" 
+        style={{ width: cardSize.width, height: cardSize.height }}
+        onClick={handleCardClick}
       >
-          <div className="neumorphic post-card" style={{ width: cardSize.width, height: cardSize.height }}>
-              <div>
-                  <p>
-                      <b>{userId}</b> @{channel} - {formattedTimestamp}
-                  </p>
-              </div>
-              {renderPostContent()}
-              <div className="resize-handle">
-                  <MdOpenWith size={30} />
-              </div>
-          </div>
-      </Rnd>
+        {/* Card Content */}
+        <div>
+          <p>
+            <b>{userId}</b> @{channel} - {formattedTimestamp}
+          </p>
+        </div>
+        {renderPostContent()}
+
+        {/* Resize Handle (Combined with Icon) */}
+        <div
+          className="resize-handle"
+          onMouseDown={(e) => {
+            e.stopPropagation(); 
+            setIsResizing(true);
+          }}
+        >
+          <MdOpenWith size={30} />
+        </div>
+      </div>
+    </Rnd>
   </div>
 );
 };

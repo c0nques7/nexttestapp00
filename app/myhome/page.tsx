@@ -1,6 +1,6 @@
 'use client';
 import '@/app/styles/global.css';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import PostCard from '../components/PostCard/postcard';
 import FinanceCard from '../components/FinanceCard/financecard';
 import { useRouter } from 'next/navigation';
@@ -70,6 +70,22 @@ export default function MyHomePage() {
   const [addTickerResponse, setAddTickerResponse] = useState<
   { message: string } | { error: string } | null
 >(null);
+const postsContainerRef = useRef<HTMLDivElement>(null);
+const [containerWidth, setContainerWidth] = useState(0);
+
+useEffect(() => {
+  const getContainerWidth = () => {
+    if (postsContainerRef.current) {
+      setContainerWidth(postsContainerRef.current.offsetWidth);
+    }
+  };
+
+  getContainerWidth(); // Initial calculation on mount
+  window.addEventListener('resize', getContainerWidth); // Update on resize
+
+  return () => window.removeEventListener('resize', getContainerWidth); // Cleanup
+}, []);
+
 
   useEffect(() => {
     const fetchUserPosts = async () => { 
@@ -251,9 +267,11 @@ export default function MyHomePage() {
     }
   };
 
+  
+
   return (
     <CardPositionsProvider>
-      <div className="myhome-page flex flex-col">
+      <div className="myhome-page">
       {isLoading ? ( 
           <p className="text-center text-lg">Loading...</p>
         ) : (
@@ -268,6 +286,27 @@ export default function MyHomePage() {
         </div>
 
         <button className="neumorphic-button" onClick={resetPositions}>Reset Card Positions</button>
+
+        <div className="posts-container">
+          
+          {userPosts.map((post, index) => (
+              <PostCard
+              key={post.id}
+              id={post.id.toString()}
+              content={post.content || ''}
+              userId={post.userId ?? 0}
+              channel={post.channel || 'Unknown'}
+              timestamp={post.timestamp}
+              postType={post.postType || 'TEXT'}
+              mediaUrl={post.mediaUrl}
+              expanded={expandedPostId === post.id}
+              onCardClick={handleCardClick} 
+              index={index} 
+              containerWidth={containerWidth}
+              />
+            ))
+          }
+        </div>
 
         {isRedditSearchEnabled && (
           <div className="redditsearch w-full justify-center gap-4 mb-4">
@@ -304,23 +343,7 @@ export default function MyHomePage() {
           )}
           
 
-        <div className="posts-container w-full justify-center gap-4 mb-4">
-          {userPosts.map((post) => (
-              <PostCard
-              key={post.id}
-              id={post.id.toString()}
-              content={post.content || ''}
-              userId={post.userId ?? 0}
-              channel={post.channel || 'Unknown'}
-              timestamp={post.timestamp}
-              postType={post.postType || 'TEXT'}
-              mediaUrl={post.mediaUrl}
-              expanded={expandedPostId === post.id}
-              onCardClick={handleCardClick}
-              />
-            ))
-          }
-        </div>
+        
 
         
 

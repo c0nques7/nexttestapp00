@@ -14,9 +14,10 @@ body {
 .flex { /* Or whatever your container's class is */
   display: flex; /* Enable flexbox */
   flex-direction: row; /* Stack items vertically */
-  align-items: flex-start; /* Center horizontally (already done) */
   flex-wrap: wrap;;
 }
+
+
 
 .stocklookup {
   display: flex;
@@ -73,10 +74,10 @@ body {
 
 
 .neumorphic {
-  height: auto;
+  
   background: #D2DBEE; 
   border-radius: 25px;
-  margin: auto;
+  margin: 10px;
   box-shadow: 
    inset 8px 8px 16px #B5C1D3, /* Darker inner shadow */
    inset -8px -8px 16px #F0F4FF; /* Lighter outer shadow */
@@ -132,17 +133,32 @@ body {
   box-shadow: inset 18.62px 18.62px 15px #B5C1D3, inset -18.62px -18.62px 15px #F0F4FF;
   padding-left: 10px;
   padding-right: 10px;
-  }
-
-.posts-container {
-  display: flex;     /* Use flexbox for layout */
-  flex-wrap: wrap;   /* Allow items to wrap to the next line */
-  gap: 20px;         /* Add space between postcards */
-  align-content: flex-start;
-  justify-content: center; /* Horizontally center the postcards */
 }
+
+.myhome-page {
+  display: flex; /* Enable flexbox */
+  flex-direction: row; /* Arrange items horizontally */
+  align-items: flex-start;  /* Align items to the top */
+  flex-wrap: wrap;
+  /* Add other styles for width, height, padding, etc. as needed */
+}
+
+.posts-container {     
+  flex-wrap: wrap;
+  gap: 20px;
+  width: 100%;  
+  max-width: 1200px; 
+  margin: 0 auto;  
+}
+
+.post-item{
+  flex: 1 1 300px;  /* Let posts grow, shrink, but have a minimum width */
+  z-index: 0;
+}
+
   
 .neumorphic.post-card{
+  position: relative;
   cursor: pointer;
   width: 350px;
   height: 300px;
@@ -154,27 +170,42 @@ body {
   border-radius: 15%;
   color: whitesmoke;
   font-size: 20px;
+  overflow: hidden;
   background: #D2DBEE;
     padding: 5px 0;
     max-width: 550px;
-    margin: 50px auto;
     border-radius: 25px;
     box-shadow: inset 9.91px 9.91px 15px #B5C1D3, inset -9.91px -9.91px 15px #F0F4FF;
-  position: relative;
+  transition: box-shadow 0.2s ease, transform 0.2s ease; /* Add transitions for smooth effect */
 }
 
+.post-item.selected .neumorphic.post-card {
+    animation: glow 1s ease-in-out infinite alternate; /* When a post-item is selected, apply a higher z-index to itself and the nested .post-card */
+}
 .resize-handle {
-  position: absolute; /* Position the handle relative to the card */
-  bottom: 5px;       /* Adjust for desired distance from bottom */
-  right: 5px;       /* Adjust for desired distance from right */
-  padding: 8px; /* Add some padding around the icon */
-  cursor: nwse-resize; /* Set the cursor to indicate resizing */
-  z-index: 10; /* Ensure the icon is above the card content (if needed) */
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  padding: 8px;       /* Or adjust padding as needed */
+  cursor: nwse-resize;
+  z-index: 15;
+  display: flex;             /* Make resize-handle a flex container */
+  align-items: center;       /* Vertically center the icon */
+  justify-content: center;   /* Horizontally center the icon */
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.resize-handle:hover {
+  outline: 2px solid #007bff; /* Blue outline on the icon */
 }
 
 .neumorphic.post-card:hover {
-  background: hsl(120, 10%, 25%); /* Greenish color on hover */
+  box-shadow: 
+    15px 15px 30px #B5C1D3,  /* Further increase shadow size and blur */
+    -10px -10px 20px #F0F4FF; /* Adjust inner shadow */
+  transform: translateY(-4px); /* Lift the card a bit more */
 }
+
 
 .neumorphic.post-card:active {
   box-shadow: inset 4px 4px 8px #B5C1D3, inset -4px -4px 8px #F0F4FF;
@@ -553,4 +584,13 @@ body {
 /* Style the icon within the Fab */
 .fab-bottom-right .MuiSvgIcon-root {
   color: blue; /* Or your desired icon color */
+}
+
+@keyframes glow {
+  0% {
+    box-shadow: 0 0 10px 5px rgba(0, 123, 255, 0.5);
+  }
+  100% {
+    box-shadow: 0 0 20px 10px rgba(0, 123, 255, 0.8); /* Brighter on full glow */
+  }
 }
