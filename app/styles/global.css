@@ -1,9 +1,18 @@
+.app-container {
+  /* ...other styles... */
+  display: flex;         /* Enable flexbox */
+  flex-direction: row; /* Or column if you want vertical layout first */
+  flex-wrap: wrap;      /* Allow items to wrap */
+  justify-content: center; /* Center horizontally */
+  align-items: center;  /* Center vertically */
+}
+
 main {
-  display: flex; /* Enable flexbox */
-  min-height: 100vh; /* Fill viewport height */
-  width: 100%;
-  flex-direction: row; /* Vertical layout */
-  justify-content: center; /* Center vertically */
+  display: flex;
+    min-height: 100vh;
+    width: 100%;
+    flex-direction: row;
+    justify-content: center;
 }
 
 body {
@@ -136,29 +145,45 @@ body {
 }
 
 .myhome-page {
-  display: flex; /* Enable flexbox */
-  flex-direction: row; /* Arrange items horizontally */
-  align-items: flex-start;  /* Align items to the top */
-  flex-wrap: wrap;
-  /* Add other styles for width, height, padding, etc. as needed */
+  display: flex;
+  flex-direction: column;  /* Align the sidebar and posts-container horizontally */
+  min-height: 100vh;    /* Fill viewport height */
+  width: 100%;
 }
 
-.posts-container {     
-  flex-wrap: wrap;
+.myhome-page .posts-container {
+  display: flex;        /* Enable flexbox for .posts-container */
+    flex-wrap: wrap;      /* Allow items to wrap */
+    justify-content: space-around;
+    gap: 20px;   /* Add spacing between post items */
+    width: 100%;
+    align-items: flex-start;  /* Vertically align items to the top */
+    flex-grow: 1;
+}
+
+.myhome-page .post-item {
+  display: flex;       
+  flex: 1 1 50%;     /* Adjust the flex-basis to control item width */
+  /* ... other styles ... */
+}
+
+.posts-container {
+  /* ... your existing styles ... */
+  padding: 15px;  /* Adjust the value as needed */
+  position: relative; /* Make posts-container the positioning context */
   gap: 20px;
-  width: 100%;  
-  max-width: 1200px; 
-  margin: 0 auto;  
 }
 
-.post-item{
-  flex: 1 1 300px;  /* Let posts grow, shrink, but have a minimum width */
-  z-index: 0;
+.post-item {
+  /* ... your existing styles ... */
+  margin-right: auto;   /* Add space on the right of each item */
+  margin-bottom: auto;  /* Add space below each item */
+  margin-left: auto;
+  margin-top: auto;
 }
-
   
 .neumorphic.post-card{
-  position: relative;
+  position: absolute;
   cursor: pointer;
   width: 350px;
   height: 300px;
@@ -176,7 +201,7 @@ body {
     max-width: 550px;
     border-radius: 25px;
     box-shadow: inset 9.91px 9.91px 15px #B5C1D3, inset -9.91px -9.91px 15px #F0F4FF;
-  transition: box-shadow 0.2s ease, transform 0.2s ease; /* Add transitions for smooth effect */
+  transition: box-shadow 0.2s ease, transform 0.3s ease-out; /* Add transitions for smooth effect */
 }
 
 .post-item.selected .neumorphic.post-card {
@@ -384,7 +409,7 @@ body {
   border-radius: 0 25px 25px 0; /* Rounded on the expanding side only */
   overflow: hidden; /* Hide overflowing content when collapsed */
   transition: width 0.3s ease-in-out; /* Smooth transition */
-  z-index: 3;
+  z-index: 20;
 }
 
 .neumorphic-sidebar.expanded {
@@ -603,7 +628,7 @@ body {
   /* Example: */
   width: 100%;
   height: 300;  
-  display: block; /* Prevent extra space below image */
+  display: flex; /* Prevent extra space below image */
   border-radius: 8px;
   object-fit: cover;
 }

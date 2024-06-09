@@ -279,34 +279,15 @@ useEffect(() => {
         <div className={`neumorphic-sidebar ${isSidebarOpen ? 'expanded' : ''}`}>
           <button className="menu-button" onClick={toggleSidebar}>☰</button>
           <div className="sidebar-content">
+          <button className="neumorphic-button" onClick={resetPositions}>Reset Card Positions</button>
             <a href="#" className="sidebar-link">Home</a>
             <a href="/profile" className="sidebar-link">Profile</a>
             <a href="/settings" className="sidebar-link">Settings</a>
           </div>
         </div>
 
-        <button className="neumorphic-button" onClick={resetPositions}>Reset Card Positions</button>
-
-        <div className="posts-container">
-          
-          {userPosts.map((post, index) => (
-              <PostCard
-              key={post.id}
-              id={post.id.toString()}
-              content={post.content || ''}
-              userId={post.userId ?? 0}
-              channel={post.channel || 'Unknown'}
-              timestamp={post.timestamp}
-              postType={post.postType || 'TEXT'}
-              mediaUrl={post.mediaUrl}
-              expanded={expandedPostId === post.id}
-              onCardClick={handleCardClick} 
-              index={index} 
-              containerWidth={containerWidth}
-              />
-            ))
-          }
-        </div>
+       
+        
 
         {isRedditSearchEnabled && (
           <div className="redditsearch w-full justify-center gap-4 mb-4">
@@ -343,7 +324,26 @@ useEffect(() => {
           )}
           
 
-        
+          <div className="posts-container">
+          
+          {userPosts.map((post, index) => (
+              <PostCard
+              key={post.id}
+              id={post.id.toString()}
+              content={post.content || ''}
+              userId={post.userId ?? 0}
+              channel={post.channel || 'Unknown'}
+              timestamp={post.timestamp}
+              postType={post.postType || 'TEXT'}
+              mediaUrl={post.mediaUrl}
+              expanded={expandedPostId === post.id}
+              onCardClick={handleCardClick} 
+              index={index} 
+              containerWidth={containerWidth}
+              />
+            ))
+          }
+        </div>
 
         
 
