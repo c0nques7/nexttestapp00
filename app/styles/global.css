@@ -204,6 +204,16 @@ body {
   transition: box-shadow 0.2s ease, transform 0.3s ease-out; /* Add transitions for smooth effect */
 }
 
+
+.preview-outline {
+  width: 100%; /* Set width to match card size */
+  height: 100%; /* Set height to match card size */
+  position: absolute;
+  top: 0;
+  left: 0;
+  border: 2px dashed gray; 
+}
+
 .post-item.selected .neumorphic.post-card {
     animation: glow 1s ease-in-out infinite alternate; /* When a post-item is selected, apply a higher z-index to itself and the nested .post-card */
 }

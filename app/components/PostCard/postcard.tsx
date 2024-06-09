@@ -1,6 +1,6 @@
 "use client";
 import '@/app/styles/global.css';
-import { useState, useRef, useEffect, createRef, RefObject } from "react";
+import { useState, useRef, useEffect, createRef, RefObject, MouseEvent, TouchEvent, BaseSyntheticEvent } from "react";
 import Image from "next/image";
 import moment from 'moment';
 import parse from 'html-react-parser';
@@ -8,7 +8,7 @@ import { useCardPositions } from '@/app/context/cardPositionsContext';
 import { PostType } from '@prisma/client';
 import ReactPlayer from 'react-player/lazy';
 import { MdOpenWith } from 'react-icons/md';
-import { Rnd } from 'react-rnd';
+import { Rnd, RndResizeCallback } from 'react-rnd';
 import { useDrag, usePinch} from '@use-gesture/react';
 import { BiReset } from 'react-icons/bi';
 
@@ -36,6 +36,24 @@ interface PostCardProps {
   containerWidth: number;
 }
 
+interface Position {
+  x: number;
+  y: number;
+}
+
+interface Delta {
+  width: number;
+  height: number;
+}
+
+interface ResizeCallbackData {
+node: HTMLElement;
+size: { width: number; height: number };
+position: Position;
+handle: Position;
+delta: Delta;
+}
+
 const PostCard = ({
   id, index, onCardClick, containerWidth, content, userId, channel, timestamp, postType, mediaUrl,
 }: PostCardProps) => {
@@ -55,6 +73,8 @@ const PostCard = ({
     y: Math.floor(index * 370 / containerWidth) * 370, // Wrap vertically
   };
   const [isResettable, setIsResettable] = useState(false);
+  const [previewSize, setPreviewSize] = useState(cardSize); // New state for preview size
+  const [initialResize, setInitialResize] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     if (!cardPositions[id.toString()]) {
@@ -63,26 +83,42 @@ const PostCard = ({
     }
   }, [id, initialPosition]);
 
+  const handleResizeStart = (
+    e: BaseSyntheticEvent,
+    direction: any, // Or your defined type, or Rnd.ResizeCallbackData if you updated
+    ref: HTMLElement
+  ) => {
+    setInitialResize(ref.getBoundingClientRect()); // Access the element directly
+    setIsResizing(true);
+  };
+
+
+  const handleResize = (e: any, direction: any, ref: any, delta: any, position: any) => {
+    setPreviewSize({
+      width: ref.offsetWidth + (position.x - initialResize.x),
+      height: ref.offsetHeight + (position.y - initialResize.y),
+    });
+  };
+
   
   const handleDragStop = (e: any, data: any) => {
         setPosition({ x: data.x, y: data.y });
         setCardPosition(id, { x: data.x, y: data.y });
         setIsResettable(true); // Enable reset icon after dragging
     };
- 
-    const handleResizeStart = () => setIsResizing(true);
-    const handleResizeStop = (e: any, direction: any, ref: any, delta: any, position: any) => {
-        const newWidth = Math.max(ref.offsetWidth, 50);
-        const newHeight = Math.max(ref.offsetHeight, 50);
 
-        setCardSize({
-            width: newWidth,
-            height: newHeight,
-        });
-        setCardPosition(id, position);
-        setIsResizing(false);
-        setIsResettable(true);
-    };
+  const handleResizeStop = (e: any, direction: any, ref: any, delta: any, position: any) => {
+  setCardSize({
+    width: ref.offsetWidth,
+    height: ref.offsetHeight,
+  });
+  setCardPosition(id, position);
+  setIsResizing(false);
+  setIsResettable(true);
+  // Reset preview size after resize is finished
+  setPreviewSize(cardSize);
+  };
+
 
 
   const renderPostContent = () => {
@@ -273,6 +309,11 @@ return (
           <MdOpenWith size={30} />
         </div>
       </div>
+      {isResizing && ( // Only show when resizing
+          <div
+            className="preview-outline"
+          />
+        )}
     </Rnd>
     </div>
 );
