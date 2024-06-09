@@ -46,10 +46,21 @@ const PostCard = ({
   const [isResizing, setIsResizing] = useState(false);
   const [isSelected, setIsSelected] = useState(false);
   const [zIndex, setZIndex] = useState(index + 1)
-  const [position, setPosition] = useState(
-    cardPositions[id.toString()] || { x: 0, y: 0 }
-  );
+  const [position, setPosition] = useState({x: 0, y: 0});
   const [scale, setScale] = useState(1);
+  
+  const initialPosition = cardPositions[id.toString()] || {
+    x: (index * (370)) % containerWidth, // Wrap horizontally 
+    y: Math.floor(index * 370 / containerWidth) * 370, // Wrap vertically
+  };
+
+  useEffect(() => {
+    if (!cardPositions[id.toString()]) {
+      // If no position is stored, use the default
+      setCardPosition(String(id), initialPosition);
+    }
+  }, [id, initialPosition]);
+
   
   const handleDragStop = (e: any, data: any) => {
     setCardPosition(String(id), { x: data.x, y: data.y }); // Update both x and y
@@ -116,10 +127,6 @@ const PostCard = ({
 
 const originalSize = { width: 350, height: 350 };
 // Calculate initial position inside the component
-const initialPosition = cardPositions[id.toString()] || {
-  x: (index * 370) % containerWidth, // Wrap horizontally 
-  y: Math.floor(index * 370 / containerWidth) * 370, // Wrap vertically
-};
 
 useEffect(() => {
   if (!cardPositions[id.toString()]) {
@@ -135,17 +142,15 @@ const handleCardClick = () => {
 };
 
   // Drag gesture with @use-gesture/react
-  const bind = useDrag(
-    ({ down, movement: [x, y] }) => {
-      if (!isResizing) {
-        setPosition({ x: down ? x + initialPosition.x : position.x, y: down ? y + initialPosition.y : position.y });
-
+  const bindDrag = useDrag(({ down, movement: [x, y] }) => {
+    if (!isResizing) { // Don't drag if resizing
+        setPosition({ x: down ? x : position.x, y: down ? y : position.y });
         if (!down) {
-          setCardPosition(String(id), position); // Update context after drag
+            // Update position in the context after the drag ends
+            setCardPosition(String(id), position); 
         }
-      }
     }
-  );
+  });
 
   const bindPinch = usePinch(
     ({ first, movement: [d], offset: [s] }) => {
@@ -164,6 +169,8 @@ const handleCardClick = () => {
       }
   );
 
+  const bind = { ...bindDrag(), ...bindPinch() };
+
 useEffect(() => {
   if (isSelected) {
     setZIndex(1000); // Bring the selected card to the front
@@ -173,7 +180,8 @@ useEffect(() => {
 }, [isSelected, index]); // Dependency array includes isSelected and index
 
 return (
-  <div className={`post-item ${isSelected ? "selected" : ""}`} {...bind} {...bindPinch}>
+  <div className={`post-item ${isSelected ? "selected" : ""}`} {...bind}
+  onClick={handleCardClick}>
     <Rnd
       ref={nodeRef}
       size={cardSize}
@@ -193,14 +201,6 @@ return (
           width: cardSize.width,
           height: cardSize.height,
         }}
-        {...bind()}
-        onClick={(e) => {
-          const target = e.target as Element; // Type assertion to Element
-      
-          if (!target.closest('.resize-handle') && !isResizing) {
-              onCardClick(postType);
-          }
-      }}
       >
         {/* Card Content */}
         <div>
