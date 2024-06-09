@@ -616,8 +616,9 @@ body {
   /* Customize container styles: width, height, margin, padding, etc. */
   /* Example: */
   width: 100%; 
-  max-width: 500px; /* Limit the maximum width if desired */
+  height: 100%;
   margin: 10px auto; /* Center the container horizontally */
+  margin-bottom: 10px;
 }
 
 .image-container:hover {
