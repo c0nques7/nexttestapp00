@@ -9,7 +9,7 @@ import { PostType } from '@prisma/client';
 import ReactPlayer from 'react-player/lazy';
 import { MdOpenWith } from 'react-icons/md';
 import { Rnd } from 'react-rnd';
-import { useDrag, usePinch } from '@use-gesture/react';
+import { useDrag, usePinch} from '@use-gesture/react';
 
 const CardSkeleton = () => (
   <div className="rounded-xl bg-gray-200 h-64 animate-pulse"></div>
@@ -144,7 +144,7 @@ const handleCardClick = () => {
   // Drag gesture with @use-gesture/react
   const bindDrag = useDrag(({ down, movement: [x, y] }) => {
     if (!isResizing) { // Don't drag if resizing
-        setPosition({ x: down ? x : position.x, y: down ? y : position.y });
+        setPosition({ x: x + initialPosition.x, y: y + initialPosition.y });
         if (!down) {
             // Update position in the context after the drag ends
             setCardPosition(String(id), position); 
@@ -152,24 +152,53 @@ const handleCardClick = () => {
     }
   });
 
-  const bindPinch = usePinch(
-    ({ first, movement: [d], offset: [s] }) => {
-        if (first) setIsResizing(true);
-
-        setScale(s); // Set the scale from the offset
-
-        const newWidth = Math.max(cardSize.width + d, 50);
-        const newHeight = Math.max(cardSize.height + d, 50);
-        setCardSize({ width: newWidth, height: newHeight });
-
-        if (!first) {
-          setIsResizing(false);
-          setCardPosition(String(id), position); // Update context after resize
-        }
+  usePinch(
+    ({ first, event, movement: [ms], offset: [s], origin: [ox, oy], memo = cardSize }) => {
+      if (first) {
+        // Prevent default browser behavior for a smoother experience
+        event.preventDefault();
+        setIsResizing(true);
+        memo = cardSize; // Start with the current size as the memo
       }
+
+      const newWidth = Math.max(memo.width * s, 50);
+      const newHeight = Math.max(memo.height * s, 50);
+
+      // Calculate the new center of the card after resizing
+      const newCenterX = ox + (newWidth - memo.width) / 2;
+      const newCenterY = oy + (newHeight - memo.height) / 2;
+
+      setPosition({
+        x: newCenterX,
+        y: newCenterY,
+      });
+      setCardSize({ width: newWidth, height: newHeight });
+
+      if (!first) {
+        setIsResizing(false);
+        // Update position in the context after resizing
+        setCardPosition(String(id), position);
+      }
+
+      return memo; // Return the updated memo for the next frame
+    },
+    { target: postCardRef, eventOptions: { passive: false } }
   );
 
-  const bind = { ...bindDrag(), ...bindPinch() };
+ 
+  
+  const handleTap = (e: React.MouseEvent<HTMLDivElement>) => {
+    const targetElement = e.target as Element; // Type assertion to Element
+
+    if (!targetElement.closest('.resize-handle') && !isResizing) {
+        handleCardClick(); 
+    }
+};
+
+  useEffect(() => {
+    setZIndex(isSelected ? 1000 : index + 1); // Assuming cards start at z-index 1
+  }, [isSelected]);
+
 
 useEffect(() => {
   if (isSelected) {
@@ -179,9 +208,16 @@ useEffect(() => {
   }
 }, [isSelected, index]); // Dependency array includes isSelected and index
 
+useEffect(() => {
+  setPosition(initialPosition); // Update position when initialPosition changes
+}, [initialPosition]); // Add initialPosition to the dependency array
+
+ 
 return (
-  <div className={`post-item ${isSelected ? "selected" : ""}`} {...bind}
+  <div className={`post-item ${isSelected ? "selected" : ""}`}
+  {...bindDrag()}
   onClick={handleCardClick}>
+  
     <Rnd
       ref={nodeRef}
       size={cardSize}
@@ -192,12 +228,12 @@ return (
       enableResizing={{ bottomRight: true }}
       onDoubleClick={handleDoubleClick}
       style={{ zIndex }}
+      onClick={handleTap}
     >
       <div 
         className="neumorphic post-card" 
         style={{
           // Apply drag and pinch transforms
-          transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
           width: cardSize.width,
           height: cardSize.height,
         }}
@@ -222,7 +258,7 @@ return (
         </div>
       </div>
     </Rnd>
-  </div>
+    </div>
 );
 };
 

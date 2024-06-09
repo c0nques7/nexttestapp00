@@ -280,7 +280,7 @@ useEffect(() => {
           <button className="menu-button" onClick={toggleSidebar}>☰</button>
           <div className="sidebar-content">
             <a href="#" className="sidebar-link">Home</a>
-            <a href="#" className="sidebar-link">Profile</a>
+            <a href="/profile" className="sidebar-link">Profile</a>
             <a href="/settings" className="sidebar-link">Settings</a>
           </div>
         </div>

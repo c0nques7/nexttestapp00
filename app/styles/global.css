@@ -186,7 +186,7 @@ body {
   position: absolute;
   bottom: 0;
   right: 0;
-  padding: 8px;       /* Or adjust padding as needed */
+  padding: 10px;       /* Or adjust padding as needed */
   cursor: nwse-resize;
   z-index: 15;
   display: flex;             /* Make resize-handle a flex container */
