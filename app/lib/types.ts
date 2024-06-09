@@ -1,4 +1,25 @@
 // types.ts
+import { PostType, ContentProvider } from '@prisma/client';
+
+export interface Post {
+  id: number;
+  userId: number | null;
+  content: string; 
+  channelId: string;
+  timestamp: string;
+  isPublic: boolean;
+  postType: PostType;
+  contentProvider: ContentProvider;
+  mediaUrl?: string | undefined;
+  transactionHash: string | null;
+  permalink?: string;
+  thumbnail?: string | null;
+  url?: string;
+  score?: number;
+  num_comments?: number;
+  is_video?: boolean;
+  created_utc?: number;
+}
 
 // Main Post Data Interface (RedditPostData)
 export interface RedditPostData {

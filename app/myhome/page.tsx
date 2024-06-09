@@ -11,6 +11,7 @@ import RedditCard from '../components/RedditCard/redditcard';
 import AddIcon from '@mui/icons-material/Add';
 import Fab from '@mui/material/Fab';
 import { CardPositionsProvider, useCardPositions } from '@/app/context/cardPositionsContext';
+import { Post } from '@/app/lib/types';
 
 interface FetchPostsResponse {
   userPosts: {
@@ -18,31 +19,18 @@ interface FetchPostsResponse {
     content: string;
     userId: number;
     channel: string;
-    timestamp: string;
+    timestamp: string; // or Date, depending on your backend
     postType: PostType;
-    mediaUrl: string;
-  }[];
+    mediaUrl: string | undefined;
+    channelId: string; // Add channelId
+    isPublic: boolean;
+    transactionHash: string | null; // Add transactionHash
+}[];
 }
 
-interface Post {
-  userId?: number;
-  channel?: string;
-  contentProvider: ContentProvider;
-  id: number;
-  title?: string;
-  content?: string;
-  subreddit?: string;
-  author?: string;
-  timestamp: string;
-  mediaUrl?: string;
-  postType?: 'TEXT' | 'IMAGE' | 'VIDEO';
-  permalink?: string;
-  thumbnail?: string | null;
-  url?: string;
-  score?: number;
-  num_comments?: number;
-  is_video?: boolean;
-  created_utc?: number;
+interface Channel {
+  id: string;
+  name: string;
 }
 
 export default function MyHomePage() {
@@ -72,7 +60,8 @@ export default function MyHomePage() {
 >(null);
 const postsContainerRef = useRef<HTMLDivElement>(null);
 const [containerWidth, setContainerWidth] = useState(0);
-
+const [isNSFWFilterEnabled, setIsNSFWFilterEnabled] = useState(false);
+const [channels, setChannels] = useState<Channel[]>([]); // Store channel names
 useEffect(() => {
   const getContainerWidth = () => {
     if (postsContainerRef.current) {
@@ -87,34 +76,32 @@ useEffect(() => {
 }, []);
 
 
-  useEffect(() => {
-    const fetchUserPosts = async () => { 
-      setIsLoading(true);
+useEffect(() => {
+  const fetchUserPosts = async () => {
+    setIsLoading(true);
 
-      try {
-        const response = await fetch('/api/fetchposts'); // Fetch only user posts
-        if (!response.ok) {
-          throw new Error('Failed to fetch user posts');
-        }
-
-        const userData: FetchPostsResponse = await response.json();
-        setUserPosts(
-          userData.userPosts.map((post) => ({
-            ...post,
-            contentProvider: ContentProvider.PEAKEFEED, 
-          }))
-        );
-      } catch (error) {
-        console.error("Error fetching user posts:", error);
-      } finally {
-        router.refresh();
-        setIsLoading(false);
-        
+    try {
+      const response = await fetch('/api/fetchposts');
+      if (!response.ok) {
+        throw new Error('Failed to fetch user posts');
       }
-    };
+      const userData: FetchPostsResponse = await response.json();
+      setUserPosts(userData.userPosts.map((post) => ({
+        ...post,
+        contentProvider: ContentProvider.PEAKEFEED,
+        isPublic: post.isPublic ?? true,    // Provide defaults
+        transactionHash: post.transactionHash ?? null, // Provide defaults
+      })));
+    } catch (error) {
+      console.error("Error fetching user posts:", error);
+    } finally {
+      router.refresh();
+      setIsLoading(false);
+    }
+  };
 
-    fetchUserPosts(); // Call the function to fetch only user posts
-  }, []);
+  fetchUserPosts();
+}, []);
 
   const handleOpenCreatePostModal = () => {
     setShowCreatePostModal(true);
@@ -130,6 +117,22 @@ useEffect(() => {
   };
 
   useEffect(() => {
+    const fetchChannels = async () => {
+      try {
+        const response = await fetch('/api/channels'); // Assuming you have an API route for fetching channels
+        if (response.ok) {
+          const data = await response.json();
+          setChannels(data.channels); // Assuming the API returns channels in an array format
+        }
+      } catch (error) {
+        console.error('Error fetching channel names:', error);
+      }
+    };
+
+    fetchChannels();
+  }, []);
+
+  useEffect(() => {
     const fetchSettings = async () => {
       try {
         const response = await fetch('/api/settings');
@@ -137,6 +140,7 @@ useEffect(() => {
           const data = await response.json();
           setIsStockSearchEnabled(data.settings.isStockSearchEnabled);
           setIsRedditSearchEnabled(data.settings.isRedditSearchEnabled);
+          setIsNSFWFilterEnabled(data.settings.isNSFWFilterEnabled);
         }
       } catch (error) {
         console.error("Error fetching settings:", error);
@@ -332,7 +336,8 @@ useEffect(() => {
               id={post.id.toString()}
               content={post.content || ''}
               userId={post.userId ?? 0}
-              channel={post.channel || 'Unknown'}
+              channel={channels.find(c => c.id === post.channelId)?.name || "Unknown Channel"} // Find the channel name // Pass the string channel name
+              channelId={post.channelId}
               timestamp={post.timestamp}
               postType={post.postType || 'TEXT'}
               mediaUrl={post.mediaUrl}
@@ -340,6 +345,8 @@ useEffect(() => {
               onCardClick={handleCardClick} 
               index={index} 
               containerWidth={containerWidth}
+              isNsfwFilterEnabled={isNSFWFilterEnabled}
+              post={post}
               />
             ))
           }

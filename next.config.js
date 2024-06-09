@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     images: {
-        domains: ['preview.redd.it', 'external-preview.redd.it', 'b.thumbs.redditmedia.com', 'www.reddit.com', 'www.redditstatic.com', 'images.weserve.nl', 'a.thumbs.redditmedia.com', "images.pexels.com"],
+        domains: ['preview.redd.it', 'external-preview.redd.it', 'b.thumbs.redditmedia.com', 'www.reddit.com', 'www.redditstatic.com', 'images.weserve.nl', 'a.thumbs.redditmedia.com', "images.pexels.com", "spankbang.com"],
         remotePatterns: [
             {
                 protocol: 'https',
@@ -58,7 +58,20 @@ const nextConfig = {
                 hostname: 'images.pexels.com',
                 port: '',
                 pathname: '/**'
+            },
+            {
+                protocol: 'http',
+                hostname: 'spankbang.com',
+                port: '',
+                pathname: '/**'
+            },
+            {
+                protocol: 'https',
+                hostname: 'spankbang.com',
+                port: '',
+                pathname: '/**'
             }
+            
             
     ],
 },
