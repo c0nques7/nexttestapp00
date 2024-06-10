@@ -1,6 +1,6 @@
 "use client";
 import '@/app/styles/global.css';
-import { useState, useRef, useEffect, createRef, RefObject, MouseEvent, TouchEvent, BaseSyntheticEvent } from "react";
+import { useState, useRef, useEffect, createRef, RefObject, BaseSyntheticEvent } from "react";
 import Image from "next/image";
 import moment from 'moment';
 import parse from 'html-react-parser';
@@ -8,10 +8,11 @@ import { useCardPositions } from '@/app/context/cardPositionsContext';
 import { PostType, ContentProvider } from '@prisma/client';
 import ReactPlayer from 'react-player/lazy';
 import { MdOpenWith } from 'react-icons/md';
-import { Rnd, RndResizeStartCallback } from 'react-rnd';
+import { Rnd, RndResizeStartCallback, Position } from 'react-rnd';
 import { useDrag, usePinch} from '@use-gesture/react';
 import { BiReset } from 'react-icons/bi';
 import { Post } from '@/app/lib/types';
+import { Direction } from 'readline';
 
 export interface CardPosition {
   x: number;
@@ -36,10 +37,6 @@ interface PostCardProps {
   channelId: string;
 }
 
-interface Position {
-  x: number;
-  y: number;
-}
 
 interface Delta {
   width: number;
@@ -71,25 +68,34 @@ const PostCard: React.FC<PostCardProps> = ({
   const nodeRef = useRef<Rnd>(null);
   const formattedTimestamp = moment(timestamp).fromNow();
   const { cardPositions, setCardPosition} = useCardPositions();
-  const [cardSize, setCardSize] = useState({ width: 350, height: 350 }); // Initial size
+  const initialPosition = cardPositions[id.toString()] || {
+    x: (index * (370)) % containerWidth,
+    y: Math.floor(index * 370 / containerWidth) * 370,
+  };
+
+  const [cardState, setCardState] = useState({
+    x: initialPosition.x,
+    y: initialPosition.y,
+    width: 350,
+    height: 350,
+    isSelected: false,
+    isResizing: false,
+  });
   const [isResizing, setIsResizing] = useState(false);
   const [isSelected, setIsSelected] = useState(false);
   const [zIndex, setZIndex] = useState(index + 1)
   const [position, setPosition] = useState({x: 0, y: 0});
   const [scale, setScale] = useState(1);
   const [isReset, setIsReset] = useState(false); 
-  const initialPosition = cardPositions[id.toString()] || {
-    x: (index * (370)) % containerWidth, // Wrap horizontally 
-    y: Math.floor(index * 370 / containerWidth) * 370, // Wrap vertically
-  };
   const [isResettable, setIsResettable] = useState(false);
-  const [previewSize, setPreviewSize] = useState(cardSize); // New state for preview size
+  const [previewSize, setPreviewSize] = useState({ width: cardState.width, height: cardState.height }); // New state for preview size
   const [initialResize, setInitialResize] = useState({ x: 0, y: 0 });
   const [startX, setStartX] = useState(0);
   const [startY, setStartY] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [selectedCardIds, setSelectedCardIds] = useState(new Set<string>());
-
+  const { width, height, x, y } = cardState; 
+  const resizeHandleRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!cardPositions[id.toString()]) {
       // If no position is stored, use the default
@@ -97,19 +103,18 @@ const PostCard: React.FC<PostCardProps> = ({
     }
   }, [id, initialPosition]);
 
-  const bindDrag = useDrag(({ down, movement: [x, y] }) => {
-    if (!isResizing) { // Only drag if not resizing
-        const newX = down ? x + initialPosition.x : position.x;
-        const newY = down ? y + initialPosition.y : position.y;
-        setPosition({ x: newX, y: newY });
+  const bindDrag = useDrag(({ down, movement: [mx, my] }) => {
+    if (!isResizing) {
+      const newX = down ? mx + initialPosition.x : x; 
+      const newY = down ? my + initialPosition.y : y;
+      setCardState((prev) => ({ ...prev, x: newX, y: newY })); // Update cardState directly
 
-        // Update position in the context after the drag ends
-        if (!down) {
-            setCardPosition(String(id), { x: newX, y: newY });
-            setIsResettable(true); // Enable reset icon after dragging
-        } else {
-            setIsDragging(true); // Indicate dragging for zIndex adjustment
-        }
+      if (!down) {
+        setCardPosition(String(id), { x: newX, y: newY });
+        setIsResettable(true);
+      } else {
+        setIsDragging(true);
+      }
     }
   });
   
@@ -123,37 +128,60 @@ const PostCard: React.FC<PostCardProps> = ({
     if (isResizing) {
       const deltaX = e.touches[0].clientX - startX;
       const deltaY = e.touches[0].clientY - startY;
-
-      setCardSize((prevSize) => ({
-        width: prevSize.width + deltaX,
-        height: prevSize.height + deltaY,
+  
+      setCardState(prev => ({
+        ...prev,
+        width: Math.max(prev.width + deltaX, 50), // Ensure minimum width
+        height: Math.max(prev.height + deltaY, 50), // Ensure minimum height
       }));
-
-      setStartX(e.touches[0].clientX); // Update startX and startY for next move
+  
+      setStartX(e.touches[0].clientX);
       setStartY(e.touches[0].clientY);
     }
   };
 
-  const handleTouchEnd = () => {
-    setIsResizing(false);
-    // ... update card position in the context
+
+
+  const handleResizeStart = (e: MouseEvent | TouchEvent, direction: Direction, ref: React.RefObject<HTMLElement>, delta: Position, position: Position) => {
+    if (ref.current) {  // Null check
+      setInitialResize(ref.current.getBoundingClientRect());
+      setIsResizing(true);
+    }
   };
 
-  const handleResizeStart = (
-    e: BaseSyntheticEvent,
-    direction: any, // Or your defined type, or Rnd.ResizeCallbackData if you updated
-    ref: HTMLElement
+  const handleResize = (
+    e: MouseEvent | TouchEvent,
+    dir: any,
+    ref: HTMLElement,
+    delta: any,
+    position: { x: number; y: number }
   ) => {
-    setInitialResize(ref.getBoundingClientRect()); // Access the element directly
-    setIsResizing(true);
+    e.preventDefault();
+  
+    if (e instanceof MouseEvent) {
+      console.log("Mouse coordinates:", e.clientX, e.clientY);
+    } else if (e instanceof TouchEvent) {
+      console.log("Touch coordinates:", e.touches[0].clientX, e.touches[0].clientY);
+    }
+  
+    setCardState((prev) => ({
+      ...prev,
+      width: ref.offsetWidth,
+      height: ref.offsetHeight,
+      ...position,
+    }));
   };
 
-
-  const handleResize = (e: any, direction: any, ref: any, delta: any, position: any) => {
-    setPreviewSize({
-      width: ref.offsetWidth + (position.x - initialResize.x),
-      height: ref.offsetHeight + (position.y - initialResize.y),
-    });
+  const handleResizeStop = (
+    e: MouseEvent | TouchEvent,
+    dir: any,
+    ref: HTMLDivElement,
+    delta: any,
+    position: { x: number; y: number }
+  ) => {
+    setIsResizing(false);
+    setCardPosition(id, position);
+    setIsResettable(true);
   };
 
 
@@ -163,19 +191,6 @@ const PostCard: React.FC<PostCardProps> = ({
         setCardPosition(id, { x: data.x, y: data.y });
         setIsResettable(true); // Enable reset icon after dragging
     };
-
-    const handleResizeStop = (e: any, direction: any, ref: any, delta: any, position: any) => {
-      setCardSize({
-        width: ref.offsetWidth,
-        height: ref.offsetHeight,
-      });
-      setCardPosition(id, position);
-      setIsResizing(false);
-      setIsResettable(true);
-      // Reset preview size after resize is finished
-      setPreviewSize(cardSize);
-      };
-
     // ... (other state variables and hooks)
     // You should add the isNsfwFilterEnabled state if it was not there before
   
@@ -256,12 +271,31 @@ const PostCard: React.FC<PostCardProps> = ({
   
 
 const resetPositionAndSize = () => {
+  console.log("Resetting card position and size");
   // Reset to the initial size and position
-  setCardSize({ width: 350, height: 350 });
-  setPosition({ x: 0, y: 0 });             // Reset to origin (0, 0)
-    setCardPosition(id, { x: 0, y: 0 });
-  setIsResettable(false); // Disable reset icon
+  setCardState({ ...initialPosition, width: 350, height: 350, isSelected: false, isResizing: false });
+    setCardPosition(id, initialPosition);
+    setIsResettable(false);
 };
+
+useEffect(() => {
+  const currentRef = postCardRef.current; // Get the current reference
+
+  if (currentRef) {
+    const touchEndHandler = () => {
+      // Your existing handleTouchEnd logic
+      setIsResizing(false);
+      // ... update card position in the context
+    };
+
+    currentRef.addEventListener('touchend', touchEndHandler);
+
+    // Cleanup function to remove the event listener
+    return () => {
+      currentRef.removeEventListener('touchend', touchEndHandler);
+    };
+  }
+}, [postCardRef]);
 
 useEffect(() => {
   if (!cardPositions[id.toString()]) {
@@ -270,62 +304,63 @@ useEffect(() => {
   }
 }, [id, initialPosition]);
 const handleDoubleClick = () => {
-  setCardSize({ width: 350, height: 350 }); // Reset to original size
+  setCardState(prev => ({
+    ...prev,                     // Keep all existing properties
+    width: 350,
+    height: 350
+  })); // Reset to original size
 };
 
 const handleCardClick = () => {
   setIsSelected(!isSelected);
 };
 
+
   // Drag gesture with @use-gesture/react
 
 
-usePinch(
-  ({ first, event, movement: [ms], offset: [s], origin: [ox, oy], memo = cardSize }) => {
-    if (first) {
-      // Prevent default browser behavior for a smoother experience
-      event.preventDefault();
-      setIsResizing(true);
-      memo = cardSize; // Start with the current size as the memo
-    }
+  usePinch(
+    ({ first, event, movement: [ms], offset: [s], origin: [ox, oy], memo = { width, height } }) => {
+      if (first) {
+        event.preventDefault();
+        setIsResizing(true);
+        memo = { width, height }; 
+      }
 
-    const newWidth = Math.max(memo.width * s, 50);
-    const newHeight = Math.max(memo.height * s, 50);
+      const newWidth = Math.max(memo.width * s, 50);
+      const newHeight = Math.max(memo.height * s, 50);
 
-    // Calculate the new center of the card after resizing
-    const newCenterX = ox + (newWidth - memo.width) / 2;
-    const newCenterY = oy + (newHeight - memo.height) / 2;
+      const newCenterX = ox + (newWidth - memo.width) / 2;
+      const newCenterY = oy + (newHeight - memo.height) / 2;
 
-    setPosition({
-      x: newCenterX,
-      y: newCenterY,
-    });
-    setCardSize({ width: newWidth, height: newHeight });
+      setCardState(prev => ({
+        ...prev,
+        x: newCenterX,
+        y: newCenterY,
+        width: newWidth,
+        height: newHeight
+      }));
 
-    if (!first) {
-      setIsResizing(false);
-      // Update position in the context after resizing
-      setCardPosition(String(id), position);
-    }
+      if (!first) {
+        setIsResizing(false);
+        setCardPosition(String(id), { x: newCenterX, y: newCenterY }); // Update with new center
+      }
 
-    return memo; // Return the updated memo for the next frame
-  },
-  { target: postCardRef.current ? postCardRef.current : undefined, // Conditional check for null
-    eventOptions: { passive: false }  } // Use postCardRef.current here
-);
+      return memo; 
+    },
+    { target: postCardRef.current ? postCardRef.current : undefined,
+      eventOptions: { passive: false } } 
+  );
 
  
   
   const handleTap = (e: React.MouseEvent<HTMLDivElement>) => {
     const targetElement = e.target as Element;
-  
-    // Check if the click is on the reset button
-    if (targetElement.closest('.neumorphic-reset-icon')) {
-      resetPositionAndSize(); // Don't do anything if the reset button was clicked
-    }
-  
-    if (!targetElement.closest('.resize-handle') && !isResizing) {
-      handleCardClick(); // Select/deselect the card
+    if (
+      !targetElement.closest('.neumorphic-reset-icon') && // Reset icon
+      !targetElement.closest('.resize-handle')          // Resize handle
+    ) {
+      handleCardClick(); // Only call when not on reset or resize handle
     }
   };
 
@@ -336,14 +371,6 @@ useEffect(() => {
 
 
 useEffect(() => {
-  if (isSelected) {
-    setZIndex(1000); // Bring the selected card to the front
-  } else {
-    setZIndex(index + 1); // Reset to the original zIndex when not selected
-  }
-}, [isSelected, index]); // Dependency array includes isSelected and index
-
-useEffect(() => {
   setPosition(initialPosition); // Update position when initialPosition changes
 }, [initialPosition]); // Add initialPosition to the dependency array
 
@@ -352,24 +379,46 @@ return (
   <div  ref={postCardRef} className={`post-item ${isSelected ? "selected" : ""}`}
      {...bindDrag()}
      onClick={handleTap}
-     onMouseDown={(e) => { e.stopPropagation(); }}> 
+     onMouseDown={(e) => { e.stopPropagation(); }}
+     style={{ touchAction: 'none' }}> 
      
     <Rnd
       ref={nodeRef}
-      size={cardSize}
-      position={initialPosition}
-      onDragStop={handleDragStop}
-      onResizeStart={handleResizeStart}
-      onResizeStop={handleResizeStop}
-      enableResizing={{ bottomRight: true }}
-      onDoubleClick={handleDoubleClick}
-      style={{ zIndex }}
+      size={{ width: cardState.width, height: cardState.height }}
+      position={{ x: cardState.x, y: cardState.y }}
+        onDragStop={(e, d) => {
+          setCardState((prev) => ({ ...prev, ...d }));
+          handleDragStop(e, d);
+        }}
+        onResizeStart={handleResizeStart}
+        onResize={handleResize}
+        onResizeStop={(e, dir, ref, delta, pos) => {
+          setCardState(prev => ({
+            ...prev,
+            width: ref.offsetWidth,
+            height: ref.offsetHeight,
+            ...pos,
+            isResizing: false,
+          }));
+          if (e instanceof MouseEvent) {
+            handleResizeStop(e, dir, ref as HTMLDivElement, delta, pos);
+          }
+        }}
+        enableResizing={{ bottomRight: true }}
+        onDoubleClick={handleDoubleClick}
+        style={{ zIndex }}
     >
       {/* Conditional Reset Button */}
-      {(isSelected || isResettable) && (
-        <button className="neumorphic-reset-icon" onClick={resetPositionAndSize}>
-          <BiReset />
-        </button>
+      {( isResettable) && (
+        <button
+        className="neumorphic-reset-icon"
+        onClick={(e) => {
+          e.stopPropagation(); // Stop event propagation
+          resetPositionAndSize();
+        }}
+      >
+        <BiReset />
+      </button>
       )}
 
       {/* Neumorphic Card */}
@@ -391,8 +440,9 @@ return (
 
         {/* Resize Handle */}
         <div
+          ref={resizeHandleRef}
           className="resize-handle"
-          onMouseDown={(e) => {
+          onPointerDown={(e) => {
             e.stopPropagation();
             setIsResizing(true);
           }}
@@ -404,7 +454,11 @@ return (
 
     {/* Resizing Preview Outline */}
     {isResizing && (
-      <div className="preview-outline" style={{ ...cardSize, ...initialPosition }} />
+      <div className="preview-outline" 
+      style={{ 
+        width: cardState.width,     
+        height: cardState.height,   
+        ...initialPosition         }} />
     )}
   </div>
 );

@@ -247,7 +247,7 @@ body {
 .neumorphic-reset-icon {
   position: absolute;
   top: 25px; 
-  right: 1px; 
+  right: -10px; 
   width: 35px;
   height: 35px;
   border-radius: 50%;
@@ -261,7 +261,7 @@ body {
   justify-content: center;
   cursor: pointer;
   transition: box-shadow 0.2s ease; 
-  z-index: 15;
+  z-index: 20;
 }
 
 .neumorphic-reset-icon:hover {
