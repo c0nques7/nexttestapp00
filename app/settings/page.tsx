@@ -11,8 +11,7 @@ export default function SettingsPage() {
     theme: string;
     isStockSearchEnabled: boolean;
     isRedditSearchEnabled: boolean;
-    isNSFWFilterEnabled: boolean;
-  }>({ theme: "light", isStockSearchEnabled: true, isRedditSearchEnabled: false, isNSFWFilterEnabled: false }); 
+  }>({ theme: "light", isStockSearchEnabled: true, isRedditSearchEnabled: false }); 
   const [isLoading, setIsLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const router = useRouter();
@@ -113,15 +112,6 @@ export default function SettingsPage() {
             label="Enable Reddit Search"
             settingKey="isRedditSearchEnabled"
             initialValue={settings.isRedditSearchEnabled}
-            onSaveSettings={(key, newValue) => {
-              setSettings({ ...settings, [key]: newValue });
-              handleSaveSettings(); 
-            }}
-          />
-          <ToggleSwitch
-            label="Enable NSFW Filter"
-            settingKey="isNSFWFilterEnabled"
-            initialValue={settings.isNSFWFilterEnabled}
             onSaveSettings={(key, newValue) => {
               setSettings({ ...settings, [key]: newValue });
               handleSaveSettings(); 
