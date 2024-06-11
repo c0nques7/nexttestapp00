@@ -1,5 +1,7 @@
 // types.ts
 
+import { Role, Prisma, User } from "@prisma/client";
+
 // Main Post Data Interface (RedditPostData)
 export interface RedditPostData {
   contentProvider: "REDDIT";
@@ -108,10 +110,53 @@ export interface Comment {
   userId: number;
   postId: number;
   content: string;
-  timestamp: string; // Or Date if you're storing as Date objects
-  user?: {   
-      id: number
-      name: string;
-    }
-  // ... other properties you might have ...
+  timestamp: Date;  
+  parentId: number | null;
+  user: {
+    id: number;
+    username: string;
+    email: string;
+    passwordHash: string;
+    isVerified: boolean;
+    role: Role;       // Assuming you have a Role enum defined elsewhere
+    ethereumAddress: string | null;
+    settings: Prisma.JsonValue; // Assuming Prisma.JsonValue is imported
+  };
+  votes: {
+    id: number;
+    userId: number;
+    postId: number;
+    voteValue: number;
+    transactionHash: string | null;
+    commentId: number | null;
+  }[];
+  flags: Flag[];
+  replies: Comment[];  // Recursive structure for nested replies
+}
+
+export interface Vote {
+  id: number;
+  userId: number;
+  postId: number;
+  voteValue: number;
+  transactionHash: string | null;
+  commentId: number | null;
+  user: User; 
+}
+
+export interface Flag {
+  id: number;
+  userId: number;
+  user: {
+    id: number;
+    // ...other user fields if needed (e.g., username)
+  } | null;
+  postId: number;
+  post: {
+    id: number;
+    // ...other post fields if needed
+  } | null;
+  reason: string;
+  commentId?: number | null; // Optional, as not all flags are for comments
+  comment?: Comment | null; // Optional, and can be null if not fetched
 }

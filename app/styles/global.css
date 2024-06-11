@@ -397,6 +397,7 @@ body {
 .comments-list {
   transform: rotateY(180deg);
   width: stretch;
+  height: 525px;
   background-color: #e0e5ec; /* Light background color */
   padding: 15px;           /* Add padding for spacing */
   border-radius: 10px;       /* Round the corners */
@@ -405,13 +406,32 @@ body {
     inset -6px -6px 12px rgba(255, 255, 255, 0.5); /* Inner shadow (dark) */
     /* You can adjust the shadow values to your preference */
   overflow-y: auto; /* Add a vertical scrollbar if content overflows */
-  max-height: 300px; /* Set a maximum height to control the scroll area */
 }
 
 .comments-list > div {
   /* ... other neumorphic styles ... */
   color: #333; /* Dark gray color */
 }
+
+.comment-container {
+  background-color: #D2DBEE; /* Same as button background */
+  border-radius: 0.5rem;      /* Same as button border-radius */
+  padding: 15px;             
+  margin-bottom: 10px; 
+
+  /* Neumorphic shadows adapted from button, adjusted for smaller size */
+  box-shadow:
+    6px 6px 10px #B5C1D3,  /* Slightly smaller and lighter shadow */
+    -6px -6px 10px #F0F4FF; /* Same as button, but negative for inner shadow */
+}
+
+.comment-container:hover,
+.comment-container:focus {
+  box-shadow: 
+    3px 3px 6px #B5C1D3,    /* Even smaller for hover/focus */
+    -3px -3px 6px #F0F4FF;
+}
+
 
 /* styles/global.css or your component-specific CSS */
 .neumorphic-comment-box {

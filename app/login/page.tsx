@@ -46,7 +46,6 @@ const LoginForm: React.FC = () => {
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center"> 
       <form className="neumorphic login" onSubmit={handleSubmit}>
         <h1 className="text-2xl font-semibold text-center mb-4">Log in to PeakeFeed</h1>
         <div>
@@ -111,7 +110,6 @@ const LoginForm: React.FC = () => {
           </Link>
         </div>
       </form>
-    </main>
   );
 };
 

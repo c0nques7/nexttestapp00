@@ -13,7 +13,7 @@ import { useDrag, usePinch} from '@use-gesture/react';
 import { BiReset } from 'react-icons/bi';
 import Icon from '@mdi/react';
 import { mdiArrowCollapseLeft } from '@mdi/js';
-
+import { Comment } from '@/app/lib/types';
 const CardSkeleton = () => (
   <div className="rounded-xl bg-gray-200 h-64 animate-pulse"></div>
 );
@@ -22,6 +22,11 @@ export interface CardPosition {
   x: number;
   y: number;
 
+}
+
+interface CommentsProps {
+  comments: { [key: string]: Comment[] } | null; // Allow for null initially
+  postId: string; 
 }
 
 interface PostCardProps {
@@ -36,6 +41,7 @@ interface PostCardProps {
   expanded: boolean;
   index: number; 
   containerWidth: number;
+  comments: CommentsProps;
 }
 
 interface Position {
@@ -57,7 +63,7 @@ delta: Delta;
 }
 
 const PostCard = ({
-  id, index, onCardClick, containerWidth, content, userId, channel, timestamp, postType, mediaUrl,
+  id, index, onCardClick, containerWidth, content, userId, channel, timestamp, postType, mediaUrl
 }: PostCardProps) => {
   const postCardRef = createRef<HTMLDivElement>();
   const nodeRef = useRef<Rnd>(null);
@@ -78,7 +84,13 @@ const PostCard = ({
   const [previewSize, setPreviewSize] = useState(cardSize); // New state for preview size
   const [initialResize, setInitialResize] = useState({ x: 0, y: 0 });
   const [isFlipped, setIsFlipped] = useState(false);
-  const [comments, setComments] = useState<{ [postId: string]: { content: string; user: any }[] }>({});  const [newComment, setNewComment] = useState("");
+  const [newComment, setNewComment] = useState("");
+  const [isLoadingComments, setIsLoadingComments] = useState(false); 
+  const [comments, setComments] = useState<CommentsProps>({
+    postId: id, // Initialize with the current post's ID
+    comments:{ [id]: [] } // Empty array to start with no comments
+});
+
 
   useEffect(() => {
     if (!cardPositions[id.toString()]) {
@@ -174,38 +186,52 @@ const PostCard = ({
   }
 };
 
-const handleAddComment = async (postId: number) => {
+const handleAddComment = async () => {
   if (newComment.trim() === "") return;
 
   try {
-      const response = await fetch(`/api/comments/`, {
-          method: "POST",
-          headers: {
-              "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ content: newComment, postId }),
-      });
+    const response = await fetch(`/api/comments/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ content: newComment, postId: parseInt(id, 10) }),
+    });
 
-      if (response.ok) {
-        const newCommentData = await response.json(); 
+    if (response.ok) {
+      const newCommentData = await response.json();
 
-        setComments((prevComments) => {
-            const updatedComments = { ...prevComments };
-            updatedComments[postId] = [
-                newCommentData.content,  // Store only the content
-                ...(updatedComments[postId] || []), // Add to existing comments, or create a new array if none exist
-            ];
-            return updatedComments;
-        });
-        setNewComment(""); 
+      setComments((prevComments) => {
+                if (!prevComments) return prevComments; // Handle null case
+                
+                // Update only the comments array for the specific post
+                 const existingComments = prevComments.comments?.[id] ?? []; 
+
+                // Explicitly check if existingComments is an array
+                const updatedComments = Array.isArray(existingComments)
+                    ? [...existingComments, newCommentData]  
+                    : [newCommentData];
+          
+                return {
+                  ...prevComments, // Keep other posts' comments
+                  comments: {
+                    ...prevComments.comments,  // Keep existing comments for other posts
+                    [id]: updatedComments // Update comments for this post
+                  }
+                };
+              });
+        
+
+      setNewComment(""); // Clear the input field after adding a comment
     } else {
-        const errorData = await response.json();
-        console.error("Failed to add comment:", response.status, errorData);
+      const errorData = await response.json();
+      console.error("Failed to add comment:", response.status, errorData);
     }
-} catch (error) {
+  } catch (error) {
     console.error("Error adding comment:", error);
-}
+  }
 };
+
 
 const resetPositionAndSize = () => {
   // Reset to the initial size and position
@@ -299,37 +325,40 @@ const handleCardClick = () => {
   }, [initialPosition]); // Add initialPosition to the dependency array
 
   useEffect(() => {
-    // Fetch comments only when the card is flipped
     const fetchComments = async () => {
       if (isFlipped) {
-          try {
-              const response = await fetch(`/api/comments`);
-              if (response.ok) {
-                  const data = await response.json();
-                  // Filter comments for the current post
-                  const postComments = data.filter((comment: any) => comment.postId === parseInt(id, 10));
-                  setComments(postComments);
-              } else {
-                  console.error("Failed to fetch comments:", response.status);
-              }
-          } catch (error) {
-              console.error("Error fetching comments:", error);
+        setIsLoadingComments(true); 
+        try {
+          const response = await fetch(`/api/comments?postId=${id}`);
+          if (response.ok) {
+            const data = await response.json();
+            setComments((prevComments) => ({
+              postId: id,
+              comments: {
+                ...prevComments.comments,
+                [id]: data.data[id] || []
+              },
+            }));
+          } else {
+            console.error("Failed to fetch comments:", response.status);
           }
+        } catch (error) {
+          console.error("Error fetching comments:", error);
+        } finally {
+          setIsLoadingComments(false); 
+        }
       }
-  };
-  fetchComments();
-}, [id, isFlipped]); // Fetch comments only when id or isFlipped changes
+    };
+    fetchComments();
+  }, [id, isFlipped]);
 
 
  
 return (
-  <div className={`post-item ${isSelected ? "selected" : ""}`}
-  {...bindDrag()}
-  onClick={handleCardClick}>
-  
+  <div className={`post-item ${isSelected ? "selected" : ""}`} {...bindDrag()} onClick={handleCardClick}>
     <Rnd
       ref={nodeRef}
-      size={isResizing ? previewSize : { width: cardSize.width, height: cardSize.height }} // Modified line
+      size={isResizing ? previewSize : { width: cardSize.width, height: cardSize.height }}
       position={initialPosition}
       onDragStop={handleDragStop}
       onResizeStart={handleResizeStart}
@@ -340,74 +369,84 @@ return (
       style={{ zIndex }}
       onClick={handleTap}
     >
-      <div 
-        className={`neumorphic post-card ${isFlipped ? 'flipped' : ''}`} 
+      <div
+        className={`neumorphic post-card ${isFlipped ? 'flipped' : ''}`}
         style={isFlipped ? { height: 700 } : { width: cardSize.width, height: cardSize.height }}
       >
 
-{isFlipped && (
-        <div className="comments-section">
+        {/* Comments Section (Back Side) */}
+        {isFlipped && (
+          <div className="comments-section">
             <textarea
-                    className="neumorphic-comment-box"
-                    placeholder="Add a comment..."
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                />
+              className="neumorphic-comment-box"
+              placeholder="Add a comment..."
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+            />
+            <button className="neumorphic-comment-button" onClick={() => handleAddComment()}>
+              Add Comment
+            </button>
 
-                {/* Neumorphic Add Comment Button */}
-                <button 
-                    className="neumorphic-comment-button"
-                    onClick={() => handleAddComment(parseInt(id, 10))}
-                >
-                    Add Comment
-                </button>
-                <div className="comments-list">
-                {/* Correct way to check if comments exist for the current post */}
-                {comments[id]?.map((comment: { content: string; user: { username: string } }, index) => (
-                        <div key={index}>
-                            {comment.content} - {comment.user?.username} 
-                        </div>
-                    ))}
-                {comments[id]?.length === 0 && <div>No comments yet</div>}
-            </div>
-        </div>
-    )}
-        
-        <div className={`card-buttons-container ${isFlipped ? 'flipped' : ''}`}> 
-                        {/* Conditionally disable buttons */}
-                        {!isFlipped && ( 
-                            <>
-                                {isResettable && ( 
-                                    <button className="neumorphic-reset-icon" onClick={resetPositionAndSize}>
-                                        <BiReset />
-                                    </button>
-                                )}
-                                <div className="resize-handle" onMouseDown={(e) => { e.stopPropagation(); setIsResizing(true); }}>
-                                    <MdOpenWith size={30} />
-                                </div>
-                            </>
-                        )}
-                        <button className='flip-button' onClick={flipCard}>
-                            <Icon path={mdiArrowCollapseLeft} size={.6}  />
-                        </button>
-                        </div>
-        {!isFlipped && (
-                    <div>
-                        <p>
-                            <b>{userId}</b> @{channel} - {formattedTimestamp}
-                        </p>
-                        {renderPostContent()}
+            <div className="comments-list">
+                        {isLoadingComments ? (
+                    <p>Loading comments...</p>
+                  ) : (
+                    Array.isArray(comments.comments?.[id])
+                      ? comments.comments[id]
+                      .slice() // Create a copy of the array
+                      .reverse() // Reverse the order of comments
+                      .map((comment: Comment) => (
+                        <div key={comment.id} className="neumorphic comment-container">
+                        <p>{comment.content}</p>
+                        {/* Add any other comment details you want to display (e.g., username, timestamp) */}
+                      </div>
+                        ))
+                      : <p>No comments yet.</p>
+                  )}
+                      </div>
                     </div>
-                )}
-      </div>
-      {isResizing && ( // Only show when resizing
-          <div
-            className="preview-outline"
-          />
+                  )}
+
+        {/* Card Buttons */}
+        <div className={`card-buttons-container ${isFlipped ? 'flipped' : ''}`}>
+          {!isFlipped && (
+            <>
+              {isResettable && (
+                <button className="neumorphic-reset-icon" onClick={resetPositionAndSize}>
+                  <BiReset />
+                </button>
+              )}
+              <div
+                className="resize-handle"
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                  setIsResizing(true);
+                }}
+              >
+                <MdOpenWith size={30} />
+              </div>
+            </>
+          )}
+          <button className="flip-button" onClick={flipCard}>
+            <Icon path={mdiArrowCollapseLeft} size={0.6} />
+          </button>
+        </div>
+
+        {/* Post Content (Front Side) */}
+        {!isFlipped && (
+          <div>
+            <p>
+              <b>{userId}</b> @{channel} - {formattedTimestamp}
+            </p>
+            {renderPostContent()}
+          </div>
         )}
+      </div>
+
+      {isResizing && <div className="preview-outline" />} 
     </Rnd>
-    </div>
+  </div>
 );
-};
+}
 
 export default PostCard;

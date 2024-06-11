@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
+import { Comment } from '@/app/lib/types'
 
 const secret = process.env.JWT_SECRET;
 const prisma = new PrismaClient();
@@ -25,27 +26,73 @@ async function authenticateUser(req: NextRequest): Promise<number | null> {
 // GET handler: Fetch all comments
 export async function GET() {
   try {
-    const allComments = await prisma.comment.findMany({
+      const allComments = await prisma.comment.findMany({
         include: {
-            user: true,          // Include user data
-            votes: true,         // Include vote data (if you want to display vote counts)
-            replies: {           // Include replies recursively
+          user: true,
+          votes: {
               include: {
-                user: true,  // Include user data for replies
-                votes: true, // Include vote data for replies
-              }
-            },
-            post: {
-              select: { id: true }
-            }
+                  user: true,
+              },
           },
-          orderBy: { timestamp: 'desc' }  // Sort comments by timestamp (newest first)
-        });
+          flags: {
+              include: {
+                  user: true,
+                  post: true,
+              },
+          },
+          replies: {
+              include: {
+                  user: true,
+                  votes: {
+                      include: {
+                          user: true,
+                      },
+                  },
+                  flags: {
+                      include: {
+                          user: true,
+                          post: true,
+                      }
+                  },
+                  replies: {
+                      include: {
+                          user: true,
+                          votes: {
+                              include: {
+                                  user: true,
+                              },
+                          },
+                          flags: {
+                              include: {
+                                  user: true,
+                                  post: true,
+                              }
+                          },
+                      }
+                  }
+              },
+          },
+          post: {
+              select: { id: true } 
+          }
+      },
+        orderBy: { timestamp: 'asc' },
+      });
 
-    return NextResponse.json(allComments);
+      const commentsByPostId: { [key: string]: Comment[] } = {}; // Corrected type definition
+    
+    for (const comment of allComments) {
+      const postId = comment.postId.toString();
+      if (!commentsByPostId[postId]) {
+        commentsByPostId[postId] = [];
+      }
+      commentsByPostId[postId].push(comment);
+    }
+
+    return NextResponse.json({ data: commentsByPostId }); // Wrap data in a "data" object
   } catch (error) {
     console.error("Error fetching comments:", error);
-    return new NextResponse(JSON.stringify({ error: 'Failed to fetch comments' }), { status: 500 });
+    return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
 
