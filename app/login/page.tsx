@@ -46,12 +46,12 @@ const LoginForm: React.FC = () => {
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-[#79966e]"> 
-      <form className="neumorphic login space-y-6 p-8 w-full max-w-md rounded-lg" onSubmit={handleSubmit}>
+    <main className="flex min-h-screen flex-col items-center justify-center"> 
+      <form className="neumorphic login" onSubmit={handleSubmit}>
         <h1 className="text-2xl font-semibold text-center mb-4">Log in to PeakeFeed</h1>
         <div>
           {/* Identifier Input */}
-          <div className="mb-4">
+          <div className="mb-6">
             <label htmlFor="identifier" className="block text-gray-700 text-sm font-bold mb-2">
               Email or Username
             </label>
@@ -61,7 +61,7 @@ const LoginForm: React.FC = () => {
                 id="identifier"
                 type="text"
                 name="identifier"
-                placeholder="Enter your email or username"
+                placeholder="Enter your email/username"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required

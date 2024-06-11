@@ -11,6 +11,8 @@ import { MdOpenWith } from 'react-icons/md';
 import { Rnd, RndResizeCallback } from 'react-rnd';
 import { useDrag, usePinch} from '@use-gesture/react';
 import { BiReset } from 'react-icons/bi';
+import Icon from '@mdi/react';
+import { mdiArrowCollapseLeft } from '@mdi/js';
 
 const CardSkeleton = () => (
   <div className="rounded-xl bg-gray-200 h-64 animate-pulse"></div>
@@ -75,6 +77,7 @@ const PostCard = ({
   const [isResettable, setIsResettable] = useState(false);
   const [previewSize, setPreviewSize] = useState(cardSize); // New state for preview size
   const [initialResize, setInitialResize] = useState({ x: 0, y: 0 });
+  const [isFlipped, setIsFlipped] = useState(false);
 
   useEffect(() => {
     if (!cardPositions[id.toString()]) {
@@ -82,6 +85,11 @@ const PostCard = ({
       setCardPosition(String(id), initialPosition);
     }
   }, [id, initialPosition]);
+
+  const flipCard = () => {
+    console.log("Flip button clicked!");
+    setIsFlipped(!isFlipped);
+  };
 
   const handleResizeStart = (
     e: BaseSyntheticEvent,
@@ -97,7 +105,7 @@ const PostCard = ({
     setPreviewSize({
       width: ref.offsetWidth + (position.x - initialResize.x),
       height: ref.offsetHeight + (position.y - initialResize.y),
-    });
+    })
   };
 
   
@@ -107,16 +115,16 @@ const PostCard = ({
         setIsResettable(true); // Enable reset icon after dragging
     };
 
-  const handleResizeStop = (e: any, direction: any, ref: any, delta: any, position: any) => {
-  setCardSize({
-    width: ref.offsetWidth,
-    height: ref.offsetHeight,
-  });
-  setCardPosition(id, position);
-  setIsResizing(false);
-  setIsResettable(true);
-  // Reset preview size after resize is finished
-  setPreviewSize(cardSize);
+    const handleResizeStop = (e: any, direction: any, ref: any, delta: any, position: any) => {
+      setCardSize({
+        width: ref.offsetWidth,
+        height: ref.offsetHeight,
+      });
+      setCardPosition(id, position);
+      setIsResizing(false);
+      setIsResettable(true);
+      // Reset preview size after resize is finished
+      setPreviewSize(cardSize); // Reset the preview size after resizing is complete
   };
 
 
@@ -189,14 +197,13 @@ const handleCardClick = () => {
 
   // Drag gesture with @use-gesture/react
   const bindDrag = useDrag(({ down, movement: [x, y] }) => {
-    if (!isResizing) { // Don't drag if resizing
+    if (!isResizing) {
         setPosition({ x: x + initialPosition.x, y: y + initialPosition.y });
         if (!down) {
-            // Update position in the context after the drag ends
-            setCardPosition(String(id), position); 
+            setCardPosition(String(id), position);
         }
     }
-  });
+});
 
   usePinch(
     ({ first, event, movement: [ms], offset: [s], origin: [ox, oy], memo = cardSize }) => {
@@ -266,10 +273,11 @@ return (
   
     <Rnd
       ref={nodeRef}
-      size={cardSize}
+      size={isResizing ? previewSize : { width: cardSize.width, height: cardSize.height }} // Modified line
       position={initialPosition}
       onDragStop={handleDragStop}
       onResizeStart={handleResizeStart}
+      onResize={handleResize}
       onResizeStop={handleResizeStop}
       enableResizing={{ bottomRight: true }}
       onDoubleClick={handleDoubleClick}
@@ -277,12 +285,8 @@ return (
       onClick={handleTap}
     >
       <div 
-        className="neumorphic post-card" 
-        style={{
-          // Apply drag and pinch transforms
-          width: cardSize.width,
-          height: cardSize.height,
-        }}
+        className={`neumorphic post-card ${isFlipped ? 'flipped' : ''}`} 
+        style={isFlipped ? { height: 700 } : { width: cardSize.width, height: cardSize.height }}
       >
         {isResettable && ( // Conditionally render reset icon
                         <button className="neumorphic-reset-icon" onClick={resetPositionAndSize}>
@@ -297,7 +301,9 @@ return (
           </p>
         </div>
         {renderPostContent()}
-
+        <button className='flip-button' onClick={flipCard}>
+        <Icon path={mdiArrowCollapseLeft} size={.6}  />
+        </button>
         {/* Resize Handle (Combined with Icon) */}
         <div
           className="resize-handle"

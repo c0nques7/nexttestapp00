@@ -29,6 +29,7 @@ model User {
   ethereumAddress String?  
   posts          Post[]
   votes          Vote[]
+  comments        Comment[]
   following      Follow[]    @relation("following")
   followers      Follow[]    @relation("followedBy")
   moderatorIn    Moderator[]
@@ -37,6 +38,23 @@ model User {
   settings  Json? 
 
   @@map("users")
+}
+
+model Comment {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id])
+  postId     Int
+  post       Post     @relation(fields: [postId], references: [id])
+  content    String
+  timestamp  DateTime @default(now())
+  parentId   Int?
+  parent     Comment? @relation("replies", fields: [parentId], references: [id], onDelete: Restrict, onUpdate: Restrict ) 
+  replies    Comment[] @relation("replies")
+  votes      Vote[]    @relation("commentVotes") 
+  flags      Flag[]    @relation("commentFlags") 
+
+  @@map("comments")
 }
 
 model Post {
@@ -53,6 +71,7 @@ model Post {
   mediaUrl       String?
   transactionHash String?  @unique
   votes          Vote[]
+  comments        Comment[]
   flags          Flag[]
 
   @@map("posts")
@@ -66,6 +85,8 @@ model Vote {
   post           Post      @relation(fields: [postId], references: [id])
   voteValue      Int
   transactionHash String?
+  commentId Int?
+  comment   Comment? @relation("commentVotes", fields: [commentId], references: [id], onDelete: SetNull, onUpdate: Cascade)
 
   @@map("votes")
 }
@@ -96,6 +117,8 @@ model Flag {
   postId Int
   post   Post   @relation(fields: [postId], references: [id])
   reason String
+  commentId Int?
+  comment   Comment? @relation("commentFlags", fields: [commentId], references: [id], onDelete: SetNull)
 
   @@map("flags")
 }

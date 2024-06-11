@@ -135,7 +135,7 @@ body {
 
 
 .neumorphic.login {
-  height: 75px;
+  height: 70px;
   background: #D2DBEE;
   border-radius: 25px;
   margin: auto;
@@ -186,7 +186,7 @@ body {
   position: absolute;
   cursor: pointer;
   width: 350px;
-  height: 300px;
+  height: 350px;
    background: #D2DBEE;
    border-radius: 25px;
    margin: 15px;
@@ -198,10 +198,13 @@ body {
   overflow: hidden;
   background: #D2DBEE;
     padding: 5px 0;
-    max-width: 550px;
     border-radius: 25px;
     box-shadow: inset 9.91px 9.91px 15px #B5C1D3, inset -9.91px -9.91px 15px #F0F4FF;
   transition: box-shadow 0.2s ease, transform 0.3s ease-out; /* Add transitions for smooth effect */
+}
+
+.post-item .neumorphic.post-card.flipped { /* Style for the flipped state */
+  transform: rotateY(180deg);
 }
 
 
@@ -219,8 +222,8 @@ body {
 }
 .resize-handle {
   position: absolute;
-  bottom: 5px;         /* Adjusted for better visual balance */
-  right: 5px;
+  bottom: 10px;         /* Adjusted for better visual balance */
+  right: 10px;
   width: 30px;         /* Slightly larger size */
   height: 30px;
   border-radius: 50%;   /* Circular shape */
@@ -293,6 +296,33 @@ body {
   border-width: 0 6px 6px 0;
 }
 
+.flip-button {
+  position: absolute;
+  cursor: pointer;
+  background-color: transparent;
+  border: none;
+  right: 0;             /* Position on the right edge */
+  top: 50%;            /* Position vertically centered */
+  transform: translateY(-50%); /* Adjust vertical position */
+  z-index: 15;
+  background: rgba(255, 255, 255, 0.2);  /* Semi-transparent white background */
+  backdrop-filter: blur(10px); /* Add blur for the glass effect */
+  -webkit-backdrop-filter: blur(10px); /* For Safari support */
+  padding: 10px 15px;
+  border-radius: 8px;
+  border: 1.5px solid rgba(255, 255, 255, 0.5); /* Subtle white border */
+  box-shadow:
+    0 4px 30px rgba(0, 0, 0, 0.1); /* Subtle drop shadow */
+  transition: all 0.2s ease; /* Transition for smooth hover effect */
+}
+
+
+.flip-button:hover {
+  background: rgba(255, 255, 255, 0.3); /* Slightly increase opacity on hover */
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.15); /* Increase shadow on hover */
+}
+
 .neumorphic-button {
   background-color: #D2DBEE;
   margin-left: 15px;
@@ -312,6 +342,8 @@ body {
 
 .neumorphic-button.login {
   background-color: #D2DBEE;
+  width: 180px;
+  height: 50px;
   margin-top: 15px;
   margin-left: 15px;
   padding: 1rem 2rem;

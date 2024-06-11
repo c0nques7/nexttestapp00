@@ -104,16 +104,16 @@ useEffect(() => {
             contentProvider: ContentProvider.PEAKEFEED, 
           }))
         );
+        router.refresh();
       } catch (error) {
         console.error("Error fetching user posts:", error);
       } finally {
-        router.refresh();
         setIsLoading(false);
         
       }
     };
 
-    fetchUserPosts(); // Call the function to fetch only user posts
+    fetchUserPosts();
   }, []);
 
   const handleOpenCreatePostModal = () => {
