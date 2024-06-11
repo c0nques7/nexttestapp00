@@ -25,7 +25,7 @@ export interface CardPosition {
 }
 
 interface CommentsProps {
-  comments: { [key: string]: Comment[] }; // Allow for null initially
+  comments: { [key: string]: Comment[] };
   postId: string; 
 }
 
@@ -41,7 +41,7 @@ interface PostCardProps {
   expanded: boolean;
   index: number; 
   containerWidth: number;
-  comments: CommentsProps;
+  comments?: CommentsProps;
 }
 
 interface Position {
