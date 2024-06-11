@@ -366,6 +366,79 @@ body {
   transform: translateY(1px); /* Push down */
 }
 
+.card-buttons-container {       /* Position absolutely within the card */
+  display: flex;          /* Enable flexbox */
+  flex-direction: column;  /* Arrange items vertically */
+  justify-content: flex-end; /* Push items to the bottom */
+  align-items: flex-end;  
+}
+
+.card-buttons-container.flipped > * {
+  transform: rotateY(180deg); /* Rotate 180 degrees on the Y-axis */
+  z-index: 10;    
+}
+
+.comments-section {
+  display: flex;          
+  flex-direction: column;  /* Stack elements vertically */
+  align-items: center;
+  gap: 10px;              /* Add spacing between the input and button */
+  /* ... other styles (top, right, z-index, etc.) ... */
+}
+
+.comments-section textarea { /* Adjust the text area width if needed */
+  width: calc(100% - 20px);
+  margin-top: 10px;
+  margin-bottom: 10px;
+  resize: vertical;  /* Take up full available width */
+}
+
+
+.comments-list {
+  transform: rotateY(180deg);
+  width: stretch;
+  background-color: #e0e5ec; /* Light background color */
+  padding: 15px;           /* Add padding for spacing */
+  border-radius: 10px;       /* Round the corners */
+  box-shadow: 
+    inset 6px 6px 12px rgba(0, 0, 0, 0.1), /* Inner shadow (light) */
+    inset -6px -6px 12px rgba(255, 255, 255, 0.5); /* Inner shadow (dark) */
+    /* You can adjust the shadow values to your preference */
+  overflow-y: auto; /* Add a vertical scrollbar if content overflows */
+  max-height: 300px; /* Set a maximum height to control the scroll area */
+}
+
+.comments-list > div {
+  /* ... other neumorphic styles ... */
+  color: #333; /* Dark gray color */
+}
+
+/* styles/global.css or your component-specific CSS */
+.neumorphic-comment-box {
+  /* Base styles for the comment box */
+  transform: rotateY(180deg);
+  background-color: #e0e5ec;  /* Light background */
+  padding: 15px;
+  border-radius: 10px; 
+  box-shadow: 
+    -6px -6px 14px rgba(255, 255, 255, 0.7),  /* Inner shadow */
+    6px 6px 10px rgba(0, 0, 0, 0.15);      /* Outer shadow */
+  /* Add other styles like border, margin, etc. */
+}
+
+.neumorphic-comment-button {
+  /* Base styles for the button */
+  transform: rotateY(180deg);
+  background-color: #e0e5ec; /* Same as comment box */
+  padding: 10px 20px;
+  border-radius: 8px;
+  box-shadow:
+    -4px -4px 8px rgba(255, 255, 255, 0.7), /* Inner shadow */
+    4px 4px 6px rgba(0, 0, 0, 0.15);     /* Outer shadow */
+  border: none;          /* Remove default button border */
+  cursor: pointer;       /* Add cursor pointer on hover */
+}
+
 
 @media (prefers-color-scheme: dark) {
   .neumorphic-button:focus {

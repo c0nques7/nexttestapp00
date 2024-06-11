@@ -102,3 +102,16 @@ export interface PeakeFeedPost {
   mediaUrl?: string; // Optional for media attachments
   // Add any other properties specific to PeakeFeed posts here
 }
+
+export interface Comment {
+  id: number;
+  userId: number;
+  postId: number;
+  content: string;
+  timestamp: string; // Or Date if you're storing as Date objects
+  user?: {   
+      id: number
+      name: string;
+    }
+  // ... other properties you might have ...
+}

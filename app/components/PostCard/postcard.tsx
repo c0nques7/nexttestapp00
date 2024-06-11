@@ -78,8 +78,7 @@ const PostCard = ({
   const [previewSize, setPreviewSize] = useState(cardSize); // New state for preview size
   const [initialResize, setInitialResize] = useState({ x: 0, y: 0 });
   const [isFlipped, setIsFlipped] = useState(false);
-  const [comments, setComments] = useState<{ [postId: string]: string[] }>({});
-  const [newComment, setNewComment] = useState("");
+  const [comments, setComments] = useState<{ [postId: string]: { content: string; user: any }[] }>({});  const [newComment, setNewComment] = useState("");
 
   useEffect(() => {
     if (!cardPositions[id.toString()]) {
@@ -175,25 +174,33 @@ const PostCard = ({
   }
 };
 
-const handleAddComment = async () => {
+const handleAddComment = async (postId: number) => {
   if (newComment.trim() === "") return;
-  try {
-    const response = await fetch(`/api/comments/${id}`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ comment: newComment }),
-    });
 
-    if (response.ok) {
-        setComments((prevComments) => ({
-            ...prevComments,
-            [id]: [...(prevComments[id] || []), newComment],
-        }));
-        setNewComment("");
+  try {
+      const response = await fetch(`/api/comments/`, {
+          method: "POST",
+          headers: {
+              "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ content: newComment, postId }),
+      });
+
+      if (response.ok) {
+        const newCommentData = await response.json(); 
+
+        setComments((prevComments) => {
+            const updatedComments = { ...prevComments };
+            updatedComments[postId] = [
+                newCommentData.content,  // Store only the content
+                ...(updatedComments[postId] || []), // Add to existing comments, or create a new array if none exist
+            ];
+            return updatedComments;
+        });
+        setNewComment(""); 
     } else {
-        console.error("Failed to add comment:", response.status);
+        const errorData = await response.json();
+        console.error("Failed to add comment:", response.status, errorData);
     }
 } catch (error) {
     console.error("Error adding comment:", error);
@@ -294,21 +301,23 @@ const handleCardClick = () => {
   useEffect(() => {
     // Fetch comments only when the card is flipped
     const fetchComments = async () => {
-        if (isFlipped) {
-            try {
-                const response = await fetch(`/api/comments/${id}`);
-                if (response.ok) {
-                    const data = await response.json();
-                    setComments(data); 
-                } else {
-                    console.error("Failed to fetch comments:", response.status);
-                }
-            } catch (error) {
-                console.error("Error fetching comments:", error);
-            }
-        }
-    };
-    fetchComments();
+      if (isFlipped) {
+          try {
+              const response = await fetch(`/api/comments`);
+              if (response.ok) {
+                  const data = await response.json();
+                  // Filter comments for the current post
+                  const postComments = data.filter((comment: any) => comment.postId === parseInt(id, 10));
+                  setComments(postComments);
+              } else {
+                  console.error("Failed to fetch comments:", response.status);
+              }
+          } catch (error) {
+              console.error("Error fetching comments:", error);
+          }
+      }
+  };
+  fetchComments();
 }, [id, isFlipped]); // Fetch comments only when id or isFlipped changes
 
 
@@ -335,48 +344,61 @@ return (
         className={`neumorphic post-card ${isFlipped ? 'flipped' : ''}`} 
         style={isFlipped ? { height: 700 } : { width: cardSize.width, height: cardSize.height }}
       >
-        {isFlipped && (
-        <div className="comments-section">
-            <textarea 
-                placeholder="Add a comment..."
-                value={newComment} // State for the new comment input
-                onChange={(e) => setNewComment(e.target.value)}
-            />
-            <button onClick={handleAddComment}>Add Comment</button>
 
-            <div className="comments-list">
-                {comments[id] && comments[id].map((comment, index) => (
-                    <div key={index}>{comment}</div>
-                ))}
+{isFlipped && (
+        <div className="comments-section">
+            <textarea
+                    className="neumorphic-comment-box"
+                    placeholder="Add a comment..."
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                />
+
+                {/* Neumorphic Add Comment Button */}
+                <button 
+                    className="neumorphic-comment-button"
+                    onClick={() => handleAddComment(parseInt(id, 10))}
+                >
+                    Add Comment
+                </button>
+                <div className="comments-list">
+                {/* Correct way to check if comments exist for the current post */}
+                {comments[id]?.map((comment: { content: string; user: { username: string } }, index) => (
+                        <div key={index}>
+                            {comment.content} - {comment.user?.username} 
+                        </div>
+                    ))}
+                {comments[id]?.length === 0 && <div>No comments yet</div>}
             </div>
         </div>
     )}
-        {isResettable && ( // Conditionally render reset icon
-                        <button className="neumorphic-reset-icon" onClick={resetPositionAndSize}>
-                        <BiReset />
-                      </button>
-                    )}
-
-        {/* Card Content */}
-        <div>
-          <p>
-            <b>{userId}</b> @{channel} - {formattedTimestamp}
-          </p>
-        </div>
-        {renderPostContent()}
-        <button className='flip-button' onClick={flipCard}>
-        <Icon path={mdiArrowCollapseLeft} size={.6}  />
-        </button>
-        {/* Resize Handle (Combined with Icon) */}
-        <div
-          className="resize-handle"
-          onMouseDown={(e) => {
-            e.stopPropagation(); 
-            setIsResizing(true);
-          }}
-        >
-          <MdOpenWith size={30} />
-        </div>
+        
+        <div className={`card-buttons-container ${isFlipped ? 'flipped' : ''}`}> 
+                        {/* Conditionally disable buttons */}
+                        {!isFlipped && ( 
+                            <>
+                                {isResettable && ( 
+                                    <button className="neumorphic-reset-icon" onClick={resetPositionAndSize}>
+                                        <BiReset />
+                                    </button>
+                                )}
+                                <div className="resize-handle" onMouseDown={(e) => { e.stopPropagation(); setIsResizing(true); }}>
+                                    <MdOpenWith size={30} />
+                                </div>
+                            </>
+                        )}
+                        <button className='flip-button' onClick={flipCard}>
+                            <Icon path={mdiArrowCollapseLeft} size={.6}  />
+                        </button>
+                        </div>
+        {!isFlipped && (
+                    <div>
+                        <p>
+                            <b>{userId}</b> @{channel} - {formattedTimestamp}
+                        </p>
+                        {renderPostContent()}
+                    </div>
+                )}
       </div>
       {isResizing && ( // Only show when resizing
           <div
