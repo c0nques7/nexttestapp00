@@ -392,10 +392,7 @@ return (
                     <p>Loading comments...</p>
                   ) : (
                     Array.isArray(comments.comments?.[id])
-                      ? comments.comments[id]
-                      .slice() // Create a copy of the array
-                      .reverse() // Reverse the order of comments
-                      .map((comment: Comment) => (
+                      ? comments.comments[id].map((comment: Comment) => (
                         <div key={comment.id} className="neumorphic comment-container">
                         <p>{comment.content}</p>
                         {/* Add any other comment details you want to display (e.g., username, timestamp) */}
