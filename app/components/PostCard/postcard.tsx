@@ -78,6 +78,8 @@ const PostCard = ({
   const [previewSize, setPreviewSize] = useState(cardSize); // New state for preview size
   const [initialResize, setInitialResize] = useState({ x: 0, y: 0 });
   const [isFlipped, setIsFlipped] = useState(false);
+  const [comments, setComments] = useState<{ [postId: string]: string[] }>({});
+  const [newComment, setNewComment] = useState("");
 
   useEffect(() => {
     if (!cardPositions[id.toString()]) {
@@ -128,7 +130,6 @@ const PostCard = ({
   };
 
 
-
   const renderPostContent = () => {
     switch (postType) {
       case 'TEXT':
@@ -172,6 +173,31 @@ const PostCard = ({
     default:
       return <p>Unsupported post type or missing media</p>;
   }
+};
+
+const handleAddComment = async () => {
+  if (newComment.trim() === "") return;
+  try {
+    const response = await fetch(`/api/comments/${id}`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ comment: newComment }),
+    });
+
+    if (response.ok) {
+        setComments((prevComments) => ({
+            ...prevComments,
+            [id]: [...(prevComments[id] || []), newComment],
+        }));
+        setNewComment("");
+    } else {
+        console.error("Failed to add comment:", response.status);
+    }
+} catch (error) {
+    console.error("Error adding comment:", error);
+}
 };
 
 const resetPositionAndSize = () => {
@@ -253,17 +279,38 @@ const handleCardClick = () => {
   }, [isSelected]);
 
 
-useEffect(() => {
-  if (isSelected) {
-    setZIndex(1000); // Bring the selected card to the front
-  } else {
-    setZIndex(index + 1); // Reset to the original zIndex when not selected
-  }
-}, [isSelected, index]); // Dependency array includes isSelected and index
+  useEffect(() => {
+    if (isSelected) {
+      setZIndex(1000); // Bring the selected card to the front
+    } else {
+      setZIndex(index + 1); // Reset to the original zIndex when not selected
+    }
+  }, [isSelected, index]); // Dependency array includes isSelected and index
 
-useEffect(() => {
-  setPosition(initialPosition); // Update position when initialPosition changes
-}, [initialPosition]); // Add initialPosition to the dependency array
+  useEffect(() => {
+    setPosition(initialPosition); // Update position when initialPosition changes
+  }, [initialPosition]); // Add initialPosition to the dependency array
+
+  useEffect(() => {
+    // Fetch comments only when the card is flipped
+    const fetchComments = async () => {
+        if (isFlipped) {
+            try {
+                const response = await fetch(`/api/comments/${id}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    setComments(data); 
+                } else {
+                    console.error("Failed to fetch comments:", response.status);
+                }
+            } catch (error) {
+                console.error("Error fetching comments:", error);
+            }
+        }
+    };
+    fetchComments();
+}, [id, isFlipped]); // Fetch comments only when id or isFlipped changes
+
 
  
 return (
@@ -288,6 +335,22 @@ return (
         className={`neumorphic post-card ${isFlipped ? 'flipped' : ''}`} 
         style={isFlipped ? { height: 700 } : { width: cardSize.width, height: cardSize.height }}
       >
+        {isFlipped && (
+        <div className="comments-section">
+            <textarea 
+                placeholder="Add a comment..."
+                value={newComment} // State for the new comment input
+                onChange={(e) => setNewComment(e.target.value)}
+            />
+            <button onClick={handleAddComment}>Add Comment</button>
+
+            <div className="comments-list">
+                {comments[id] && comments[id].map((comment, index) => (
+                    <div key={index}>{comment}</div>
+                ))}
+            </div>
+        </div>
+    )}
         {isResettable && ( // Conditionally render reset icon
                         <button className="neumorphic-reset-icon" onClick={resetPositionAndSize}>
                         <BiReset />
