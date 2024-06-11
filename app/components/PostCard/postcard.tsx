@@ -12,8 +12,10 @@ import { Rnd, RndResizeCallback } from 'react-rnd';
 import { useDrag, usePinch} from '@use-gesture/react';
 import { BiReset } from 'react-icons/bi';
 import Icon from '@mdi/react';
-import { mdiArrowCollapseLeft } from '@mdi/js';
+import { mdiArrowCollapseLeft, mdiMenu } from '@mdi/js';
 import { Comment } from '@/app/lib/types';
+
+
 const CardSkeleton = () => (
   <div className="rounded-xl bg-gray-200 h-64 animate-pulse"></div>
 );
@@ -90,7 +92,8 @@ const PostCard = ({
     postId: id, // Initialize with the current post's ID
     comments:{ [id]: [] } // Empty array to start with no comments
 });
-
+const [isCardMenuOpen, setIsCardMenuOpen] = useState(false);
+const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false);
 
   useEffect(() => {
     if (!cardPositions[id.toString()]) {
@@ -186,6 +189,26 @@ const PostCard = ({
   }
 };
 
+const confirmDelete = async () => {
+  try {
+    const response = await fetch(`/api/posts/${id}`, { method: 'DELETE' });
+
+    if (response.ok) {
+      // Post was successfully deleted. Update UI or state as needed.
+      // For example, you could trigger a re-fetch of posts.
+      console.log("Post deleted successfully!");
+    } else {
+      // Handle the error (e.g., show an error message to the user).
+      console.error("Failed to delete post:", response.status);
+    }
+  } catch (error) {
+    console.error("Error deleting post:", error);
+  }
+
+  setIsDeleteConfirmationOpen(false); // Close the confirmation after deleting (or error)
+  setIsCardMenuOpen(false); // Close the menu
+};
+
 const handleAddComment = async () => {
   if (newComment.trim() === "") return;
 
@@ -239,6 +262,14 @@ const resetPositionAndSize = () => {
   setPosition({ x: 0, y: 0 });             // Reset to origin (0, 0)
     setCardPosition(id, { x: 0, y: 0 });
   setIsResettable(false); // Disable reset icon
+};
+
+const handleDeleteClick = () => {
+  setIsDeleteConfirmationOpen(true);
+};
+
+const cancelDelete = () => {
+  setIsDeleteConfirmationOpen(false);
 };
 
 useEffect(() => {
@@ -422,6 +453,11 @@ return (
               >
                 <MdOpenWith size={30} />
               </div>
+              {!isDeleteConfirmationOpen && (
+              <button className="card-menu-button" onClick={() => setIsCardMenuOpen(!isCardMenuOpen)}>
+              <Icon path={mdiMenu} size={0.6} />
+            </button>
+            )}
             </>
           )}
           <button className="flip-button" onClick={flipCard}>
@@ -438,8 +474,28 @@ return (
             {renderPostContent()}
           </div>
         )}
-      </div>
 
+<div 
+            className={`card-menu-slider ${isDeleteConfirmationOpen ? 'delete-confirmation' : ''} ${isCardMenuOpen ? 'open' : ''}`}
+            style={{ height: isDeleteConfirmationOpen ? '100%' : isCardMenuOpen ? '25%' : '0px' }} 
+          > 
+            {/* Conditionally Render Menu Items */}
+            {!isDeleteConfirmationOpen ? (
+              <>
+                <button disabled={isDeleteConfirmationOpen}>Edit</button>
+                <button disabled={isDeleteConfirmationOpen}>Share</button>
+                <button className="card-delete-button" onClick={handleDeleteClick}>Delete</button>
+              </>
+            ) : (
+              <div className="delete-confirmation-content">
+                <p>Are you sure you want to delete this post?</p>
+                <button onClick={confirmDelete}>Yes</button>
+                <button onClick={cancelDelete}>No</button>
+              </div>
+            )}
+          </div>
+      </div>
+        
       {isResizing && <div className="preview-outline" />} 
     </Rnd>
   </div>

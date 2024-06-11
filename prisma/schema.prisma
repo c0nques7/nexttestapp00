@@ -70,9 +70,9 @@ model Post {
   contentProvider       ContentProvider 
   mediaUrl       String?
   transactionHash String?  @unique
-  votes          Vote[]
+  votes           Vote[]
   comments        Comment[]
-  flags          Flag[]
+  flags           Flag[]
 
   @@map("posts")
 }

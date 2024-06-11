@@ -222,28 +222,31 @@ body {
 }
 .resize-handle {
   position: absolute;
-  bottom: 10px;         /* Adjusted for better visual balance */
-  right: 10px;
-  width: 30px;         /* Slightly larger size */
-  height: 30px;
-  border-radius: 50%;   /* Circular shape */
-  background-color: #e2e8f0; /* Background matches the card inner */
-  box-shadow: 
-    6px 6px 12px #b8c5d6, /* Outer shadow (lighter) - same as card */
-    -6px -6px 12px #ffffff; /* Inner shadow (darker) - same as card */
+  bottom: 0px; 
+  right: 0px;
+  width: 40px; 
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);  /* Semi-transparent white background */
+  box-shadow:
+    0 4px 30px rgba(0, 0, 0, 0.1);       /* Subtle shadow */
+  backdrop-filter: blur(5px);             /* Key to glassmorphism */
+  -webkit-backdrop-filter: blur(5px);    /* For Safari */
+  border: 1px solid rgba(255, 255, 255, 0.3); /* A subtle border */
   cursor: nwse-resize;
   z-index: 15;
-  display: flex; 
+  display: flex;
   align-items: center;
   justify-content: center;
-  transition: box-shadow 0.2s ease; /* Add transition for smoother hover effect */
+  transition: box-shadow 0.2s ease, background 0.2s ease; /* Transition for smooth hover effect */
 }
 
 .resize-handle:hover {
+  background: rgba(255, 255, 255, 0.3); /* Slightly increase opacity on hover */
   box-shadow:
-    3px 3px 6px #b8c5d6,  /* Subtler shadow on hover */
-    -3px -3px 6px #ffffff;
+    0 8px 32px rgba(0, 0, 0, 0.15);     /* More pronounced shadow on hover */
 }
+
 
 .resize-handle svg {
   fill: #718096; /* Adjust icon color to your preference */
@@ -251,31 +254,51 @@ body {
 
 .neumorphic-reset-icon {
   position: absolute;
-  top: 10px; 
-  right: 10px; 
-  width: 35px;
-  height: 35px;
+  top: 0px;
+  right: 0px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  background-color: #e2e8f0;  /* Updated background to match card inner */
+  background: rgba(255, 255, 255, 0.2);  /* Semi-transparent white background */
   box-shadow: 
-    6px 6px 12px #b8c5d6,   /* Use same shadow as card for consistency */
-    -6px -6px 12px #ffffff; /* Use same shadow as card for consistency */
-  border: none;
+    0 4px 30px rgba(0, 0, 0, 0.1);       /* Subtle shadow */
+  backdrop-filter: blur(5px);             /* Key for glassmorphism */
+  -webkit-backdrop-filter: blur(5px);    /* For Safari support */
+  border: 1px solid rgba(255, 255, 255, 0.1); /* A subtle border */
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: box-shadow 0.2s ease; 
+  transition: box-shadow 0.2s ease, background 0.2s ease; /* Added transition for background color */
 }
 
 .neumorphic-reset-icon:hover {
-  box-shadow:
-    3px 3px 6px #b8c5d6, 
-    -3px -3px 6px #ffffff; /* Slightly adjusted shadow for hover */
+  background: rgba(255, 255, 255, 0.3); /* Slightly increase opacity on hover */
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.15);      /* More pronounced shadow on hover */
 }
 
 .neumorphic-reset-icon svg {
   fill: #718096; /* Adjust icon color as needed */
+}
+
+.card-delete-button {
+  background-color: #ff0000; /* Red */
+  color: white; /* Ensure text is visible on the red background */
+}
+
+.delete-confirmation-content {
+  background-color: lightcoral;
+  height: 100%; /* Expand to full height when delete confirmation is open */
+  display: flex; /* Use flexbox for layout */
+  flex-direction: column; /* Align items vertically */
+  align-items: center; /* Center horizontally */
+  justify-content: center; /* Center vertically */
+}
+
+.delete-confirmation-content p,
+.delete-confirmation-content button {
+  color: #333; /* Darker gray */
 }
 
 .neumorphic.post-card:hover {
@@ -457,6 +480,41 @@ body {
     4px 4px 6px rgba(0, 0, 0, 0.15);     /* Outer shadow */
   border: none;          /* Remove default button border */
   cursor: pointer;       /* Add cursor pointer on hover */
+}
+
+.card-menu-slider {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 0; /* Initial height is 0 (closed) */
+  background-color: #e0e5ec;
+  overflow: hidden; /* Hide overflow when closed */
+  transition: height 0.3s ease-in; /* Smooth transition */
+}
+
+.card-menu-slider.open {
+  height: 25%; /* Open height is 25% of the card */
+}
+
+.card-menu-button {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%); /* Center the button horizontally */
+  z-index: 35;
+  width: 48px; /* Adjust the width to your desired size */
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 8px; /* Slightly round the corners, but still maintain a square-ish look */
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 10px; 
+}
+.card-menu-button:hover {
+  background: rgba(255, 255, 255, 0.3); /* Slightly increase opacity on hover */
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.15);      /* More pronounced shadow on hover */
 }
 
 
