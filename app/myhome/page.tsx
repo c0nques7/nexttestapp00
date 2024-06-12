@@ -101,7 +101,8 @@ useEffect(() => {
         setUserPosts(
           userData.userPosts.map((post) => ({
             ...post,
-            contentProvider: ContentProvider.PEAKEFEED, 
+            contentProvider: ContentProvider.PEAKEFEED,
+             
           }))
         );
         router.refresh();
@@ -285,9 +286,6 @@ useEffect(() => {
             <a href="/settings" className="sidebar-link">Settings</a>
           </div>
         </div>
-
-       
-        
 
         {isRedditSearchEnabled && (
           <div className="redditsearch w-full justify-center gap-4 mb-4">

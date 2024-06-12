@@ -16,7 +16,7 @@ interface CreatePostRequestBody {
     mediaUrl?: string;   // Optional media URL
   }
 
-  export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest) {
     const cookieStore = cookies();
     try {
       // 1. Authentication (using JWT) 
@@ -69,47 +69,49 @@ interface CreatePostRequestBody {
     }
   }
 
-  export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
-  const nextCookies = cookies();
-  const token = nextCookies.get('authToken'); 
-
- 
-  if (!token) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  export async function DELETE(request: NextRequest, { params }: { params: { postId: string } }) {
+    const cookieStore = cookies();
+    const token = cookieStore.get('authToken');
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    try {
+      //Verify JWT
+      const decoded = jwt.verify(token.value, process.env.JWT_SECRET!) as { userId: number };
+  
+      const postId = parseInt(params.postId, 10);
+      console.log("Attempting to delete post with ID:", postId); // Log the postId before deletion
+  
+      //Check if post exists and user is authorized 
+      const existingPost = await prisma.post.findUnique({
+        where: { id: postId },
+      });
+  
+      if (!existingPost) {
+        console.warn("Post not found with ID:", postId);
+        return NextResponse.json({ error: 'Post not found' }, { status: 404 });
+      }
+  
+      if (existingPost.userId !== decoded.userId) {
+        console.error("User (ID:", decoded.userId, ") unauthorized to delete post (ID:", postId, ")");
+        return NextResponse.json({ error: 'Unauthorized to delete this post' }, { status: 403 });
+      }
+  
+      //Delete the post
+      await prisma.post.delete({
+        where: { id: postId },
+      });
+  
+      console.log("Post deleted successfully (ID:", postId, ")");
+      return NextResponse.json({ message: 'Post deleted successfully' }, { status: 200 });
+    } catch (error: any) {
+      if (error.name === "JsonWebTokenError") {
+        console.error("Invalid or expired token:", error);
+        return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 });
+      }
+  
+      console.error("Error deleting post (ID:", params.postId, "):", error); 
+      return NextResponse.json({ error: 'An error occurred while deleting the post' }, { status: 500 });
+    }
   }
-
-  try {
-    // Verify the token with error handling
-    const decoded = jwt.verify(token.value, process.env.JWT_SECRET!) as { userId: number }; 
-
-    const postId = parseInt(params.id, 10); // Get postId from params
-
-    // Check if the post exists
-    const existingPost = await prisma.post.findUnique({
-      where: { id: postId },
-    });
-
-    if (!existingPost) {
-      return NextResponse.json({ error: 'Post not found' }, { status: 404 });
-    }
-
-    // Check if the user is authorized to delete the post (i.e., is the owner)
-    if (existingPost.userId !== decoded.userId) {
-      return NextResponse.json({ error: 'Unauthorized to delete this post' }, { status: 403 });
-    }
-
-    // Delete the post
-    await prisma.post.delete({
-      where: { id: postId },
-    });
-
-    return NextResponse.json({ message: 'Post deleted successfully' }, { status: 200 });
-  } catch (error: any) {
-    if (error.name === "JsonWebTokenError") {
-      return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 }); 
-    }
-
-    console.error("Error deleting post:", error);
-    return NextResponse.json({ error: 'An error occurred while deleting the post' }, { status: 500 });
-  }
-}
+  

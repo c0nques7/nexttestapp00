@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
         mediaUrl: true,
       },
       orderBy: {
-        timestamp: 'desc',
+        timestamp: 'asc',
       },
     });
 

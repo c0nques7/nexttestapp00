@@ -191,7 +191,7 @@ const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false);
 
 const confirmDelete = async () => {
   try {
-    const response = await fetch(`/api/posts/${id}`, { method: 'DELETE' });
+    const response = await fetch(`/api/post/${parseInt(id, 10)}`, { method: 'DELETE' });
 
     if (response.ok) {
       // Post was successfully deleted. Update UI or state as needed.
@@ -262,6 +262,7 @@ const resetPositionAndSize = () => {
   setPosition({ x: 0, y: 0 });             // Reset to origin (0, 0)
     setCardPosition(id, { x: 0, y: 0 });
   setIsResettable(false); // Disable reset icon
+  setIsSelected(false);
 };
 
 const handleDeleteClick = () => {
@@ -419,21 +420,23 @@ return (
             </button>
 
             <div className="comments-list">
-                        {isLoadingComments ? (
-                    <p>Loading comments...</p>
-                  ) : (
-                    Array.isArray(comments.comments?.[id])
-                      ? comments.comments[id].map((comment: Comment) => (
-                        <div key={comment.id} className="neumorphic comment-container">
-                        <p>{comment.content}</p>
-                        {/* Add any other comment details you want to display (e.g., username, timestamp) */}
-                      </div>
+            {isLoadingComments ? (
+                        <p>Loading comments...</p>
+                    ) : (
+                      Array.isArray(comments.comments?.[id]) ? (
+                        comments.comments[id].map((comment: Comment) => (
+                            <div key={comment.id} className="neumorphic comment-container">
+                                <p>{comment.content}</p>
+                                {/* Add any other comment details you want to display */}
+                            </div>
                         ))
-                      : <p>No comments yet.</p>
-                  )}
-                      </div>
-                    </div>
-                  )}
+                    ) : (
+                        <p>No comments yet.</p>
+                    )
+                )}
+              </div>
+            </div>
+        )}
 
         {/* Card Buttons */}
         <div className={`card-buttons-container ${isFlipped ? 'flipped' : ''}`}>
@@ -477,7 +480,7 @@ return (
 
 <div 
             className={`card-menu-slider ${isDeleteConfirmationOpen ? 'delete-confirmation' : ''} ${isCardMenuOpen ? 'open' : ''}`}
-            style={{ height: isDeleteConfirmationOpen ? '100%' : isCardMenuOpen ? '25%' : '0px' }} 
+            style={{ height: isDeleteConfirmationOpen ? '100%' : isCardMenuOpen ? '30%' : '0px' }} 
           > 
             {/* Conditionally Render Menu Items */}
             {!isDeleteConfirmationOpen ? (

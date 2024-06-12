@@ -10,9 +10,20 @@ export const metadata: Metadata = {
 export default function LoginLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="flex min-h-screen flex-col items-center justify-center">
-        {/* Main Content Container */}
-          {children} 
+      <body>
+        <div > {/* Full-height container */}
+          <header> {/* Neumorphic header */}
+            {/* Your header content (e.g., logo, navigation) goes here */}
+          </header>
+
+          <main> {/* Main content area, takes up remaining space */}
+            {children}
+          </main>
+
+          <footer> {/* Neumorphic footer */}
+            {/* Your footer content goes here */}
+          </footer>
+        </div>
       </body>
     </html>
   );

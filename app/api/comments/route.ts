@@ -76,7 +76,7 @@ export async function GET() {
               select: { id: true } 
           }
       },
-        orderBy: { timestamp: 'asc' },
+        orderBy: { timestamp: 'desc' },
       });
 
       const commentsByPostId: { [key: string]: Comment[] } = {}; // Corrected type definition

@@ -47,7 +47,7 @@ const LoginForm: React.FC = () => {
 
   return (
       <form className="neumorphic login" onSubmit={handleSubmit}>
-        <h1 className="text-2xl font-semibold text-center mb-4">Log in to PeakeFeed</h1>
+        <h1 className="text-2xl text-center mb-4">Log in to PeakeFeed</h1>
         <div>
           {/* Identifier Input */}
           <div className="mb-6">
