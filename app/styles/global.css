@@ -18,6 +18,59 @@ main {
   font-family: 'Inter', sans-serif; 
 }
 
+/* In your global CSS file or a stylesheet specific to this component */
+.channel-search-bar {
+  display: flex;             /* Use flexbox for layout */
+  flex-direction: column;    /* Stack elements vertically */
+  align-items: center;       /* Center items horizontally */
+  width: 80%;                /* Adjust width as needed */
+  margin: 20px auto;         /* Center the container */
+  padding: 20px;             /* Add padding for spacing */
+  border-radius: 10px;       /* Rounded corners */
+
+  /* Neumorphic base styles */
+  background-color: #e0e0e0; /* Light background */
+  box-shadow:
+    10px 10px 20px #c9d1d9, /* Darker shadow */
+    -10px -10px 20px #ffffff; /* Lighter shadow */
+}
+
+.channel-search-bar input[type="text"] {
+  width: 100%;       /* Take full width of container */
+  padding: 15px;     /* Add padding to input */
+  border: none;      /* Remove default border */
+  border-radius: 8px; /* Rounded corners */
+  box-sizing: border-box; /* Include padding and border in element's total width and height */
+  font-size: 18px;  /* Increase font size */
+
+  /* Neumorphic styles for input */
+  background-color: #f5f5f5; /* Slightly lighter background for input */
+  box-shadow: inset 5px 5px 10px #d1d9e6, inset -5px -5px 10px #ffffff; 
+}
+
+.channel-search-bar button {
+  /* ... your button styles ... */
+}
+
+.channel-search-bar ul {
+  list-style: none;
+  padding: 0;
+  margin-top: 10px; 
+  width: 100%;
+}
+
+.channel-search-bar li {
+  background-color: #f0f0f0; /* Background for search results */
+  padding: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.channel-search-bar li:hover {
+  background-color: #e0e0e0;
+}
+
 body {
   background-color: #D2DBEE; /* Light blue background */
   font-family: 'Inter', sans-serif; 

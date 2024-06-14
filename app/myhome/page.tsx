@@ -7,9 +7,7 @@ import { useRouter } from 'next/navigation';
 import CreatePost from '../components/CreatePost/createpost';
 import { PostType, ContentProvider } from '@prisma/client';
 import { RedditPostData, RedditApiResponse } from '../lib/types';
-import RedditCard from '../components/RedditCard/redditcard';
-import AddIcon from '@mui/icons-material/Add';
-import Fab from '@mui/material/Fab';
+import { Channel } from '@prisma/client';
 import { CardPositionsProvider, useCardPositions } from '@/app/context/cardPositionsContext';
 import M from 'materialize-css';
 
@@ -68,13 +66,41 @@ export default function MyHomePage() {
   const [newTicker, setNewTicker] = useState('');
   const [addTickerResponse, setAddTickerResponse] = useState<
   { message: string } | { error: string } | null
->(null);
-const postsContainerRef = useRef<HTMLDivElement>(null);
-const [containerWidth, setContainerWidth] = useState(0);
-const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-const fabRef = useRef<any>(null);
+  >(null);
+  const postsContainerRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState(0);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const fabRef = useRef<any>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<Channel[]>([]);
   const open = Boolean(anchorEl);
 
+  const handleSearch = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const query = event.target.value;
+    setSearchQuery(query);
+
+    if (query.trim() !== '') {
+      // Fetch channels matching the search query
+      try {
+        const response = await fetch(`/api/searchchannels?query=${query}`);
+        if (response.ok) {
+          const data = await response.json();
+          setSearchResults(data.channels); // Assuming the API response structure
+        } else {
+          console.error('Error fetching search results');
+        }
+      } catch (error) {
+        console.error('Error fetching search results:', error);
+      }
+    } else {
+      setSearchResults([]); // Clear results when search is empty
+    }
+  };
+
+  const handleChannelClick = (channelName: string) => {
+    // Navigate to the channel page
+    router.push(`/channel/${channelName}`);
+  };
 
 useEffect(() => {
   const getContainerWidth = () => {
@@ -345,6 +371,28 @@ useEffect(() => {
               </div>
             </div>
           )}
+
+          {/* Search Bar */}
+        <div className="channel-search-bar">
+          <input 
+            type="text" 
+            placeholder="Search for channels" 
+            value={searchQuery}
+            onChange={handleSearch}
+          />
+          
+          {/* Search Results */}
+          {searchQuery.trim() !== '' && searchResults.length > 0 && (
+            <ul>
+              {searchResults.map(channel => (
+                <li key={channel.id} onClick={() => handleChannelClick(channel.name)}>
+                  {channel.name}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
           
 
           <div className="posts-container">
