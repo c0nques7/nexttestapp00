@@ -96,6 +96,7 @@ model Channel {
   name       String    @unique
   posts      Post[]
   moderators Moderator[]
+  isCorpAccount Boolean     @default(false)
 
   @@map("channels")
 }

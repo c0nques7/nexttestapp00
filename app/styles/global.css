@@ -164,6 +164,47 @@ body {
   
 }
 
+/* Example customizations */
+.fixed-action-btn {
+  position: fixed; /* Position relative to the viewport */
+  bottom: 20px;   /* Distance from the bottom of the viewport */
+  right: 60px;    /* Distance from the right of the viewport */
+  z-index: 999;   /* Ensure the FAB is above other content */
+}
+
+.fixed-action-btn ul li {
+  margin-bottom: 15px; /* Add spacing between items */
+}
+
+.fixed-action-btn a {
+  background-color: #e0e0e0; /* Light background */
+  box-shadow:
+    6px 6px 12px #bebebe, /* Dark shadow */
+    -6px -6px 12px #ffffff; /* Light shadow */
+  border-radius: 50%;
+  transition: all 0.3s ease; /* Add transition for smooth effect */
+}
+
+.fixed-action-btn a:hover {
+  box-shadow:
+    2px 2px 6px #bebebe, /* Smaller shadow on hover */
+    -2px -2px 6px #ffffff; 
+}
+
+.fixed-action-btn .btn-floating {
+  display: flex;
+  justify-content: center; /* Horizontally center items */
+  align-items: center;
+  margin-right: 20px;  /* Add space between buttons horizontally */
+  margin-bottom: 10px; /* Add space between buttons vertically */
+  width: 60px; /* Increase button width */
+  height: 60px; /* Increase button height */
+}
+
+.fixed-action-btn .material-icons {
+  color: #616161; /* Darker icon color */
+}
+
 .posts-container {
   display: grid;               /* Enable CSS Grid */
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));  /* Responsive columns */

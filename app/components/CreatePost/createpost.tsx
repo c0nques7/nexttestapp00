@@ -15,6 +15,8 @@ const CreatePost = ({ onClose, onPostCreated }: { onClose: OnCloseFn, onPostCrea
   const [postDestination, setPostDestination] = useState<'SELF' | 'CHANNEL'>('SELF');
   const [isPrivate, setIsPrivate] = useState(false);
   const isMediaPost = postType === 'IMAGE' || postType === 'VIDEO'; // Determine if media is needed
+  const [channelName, setChannelName] = useState(''); // New state for channel name
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => { 
     e.preventDefault(); 
 
@@ -115,19 +117,31 @@ const CreatePost = ({ onClose, onPostCreated }: { onClose: OnCloseFn, onPostCrea
           </div>
 
           <div>
-            <label htmlFor="postDestination">Post To:</label>
-            <select
-              id="postDestination"
-              value={postDestination}
-              onChange={(e) => setPostDestination(e.target.value as 'SELF' | 'CHANNEL')}
-              disabled={isPrivate} // Disable when isPrivate is true
-            >
-              <option value="SELF">Self</option>
-              <option value="CHANNEL">Channel</option>
-            </select>
-          </div>
+                <label htmlFor="postDestination">Post To:</label>
+                <select
+                    id="postDestination"
+                    value={postDestination}
+                    onChange={(e) => setPostDestination(e.target.value as 'SELF' | 'CHANNEL')}
+                    disabled={isPrivate}
+                >
+                    <option value="SELF">Self</option>
+                    <option value="CHANNEL">Channel</option>
+                </select>
+            </div>
 
-          {/* Add other form elements if necessary, e.g., for mediaUrl */}
+            {/* Conditionally render the channel input */}
+            {postDestination === 'CHANNEL' && (
+                <div>
+                    <label htmlFor="channelName">Channel Name:</label>
+                    <input
+                        type="text"
+                        id="channelName"
+                        value={channelName}
+                        onChange={(e) => setChannelName(e.target.value)}
+                        required
+                    />
+                </div>
+                  )}
           <button type="submit">Create Post</button>
         </form>
         

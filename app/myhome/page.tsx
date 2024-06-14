@@ -11,6 +11,7 @@ import RedditCard from '../components/RedditCard/redditcard';
 import AddIcon from '@mui/icons-material/Add';
 import Fab from '@mui/material/Fab';
 import { CardPositionsProvider, useCardPositions } from '@/app/context/cardPositionsContext';
+import M from 'materialize-css';
 
 interface FetchPostsResponse {
   userPosts: {
@@ -47,7 +48,6 @@ interface Post {
 
 export default function MyHomePage() {
   const router = useRouter();
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [userPosts, setUserPosts] = useState<Post[]>([]);
   const [stockData, setStockData] = useState<any>(null);
   const [symbol, setSymbol] = useState('');
@@ -65,13 +65,16 @@ export default function MyHomePage() {
   const [expandedPostIdString, setExpandedPostIdString] = useState<string | null>(null);
   const { resetPositions } = useCardPositions();
   const [tickerSymbols, setTickerSymbols] = useState<string[]>([]); // Use string for ticker symbols
-  const savedSubreddits = ["popular", "pics", "reactjs", "javascript", "programming"];
   const [newTicker, setNewTicker] = useState('');
   const [addTickerResponse, setAddTickerResponse] = useState<
   { message: string } | { error: string } | null
 >(null);
 const postsContainerRef = useRef<HTMLDivElement>(null);
 const [containerWidth, setContainerWidth] = useState(0);
+const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+const fabRef = useRef<any>(null);
+  const open = Boolean(anchorEl);
+
 
 useEffect(() => {
   const getContainerWidth = () => {
@@ -92,7 +95,7 @@ useEffect(() => {
       setIsLoading(true);
 
       try {
-        const response = await fetch('/api/fetchposts'); // Fetch only user posts
+        const response = await fetch('/api/fetchposts', { cache: 'no-store'}); // Fetch only user posts
         if (!response.ok) {
           throw new Error('Failed to fetch user posts');
         }
@@ -105,7 +108,6 @@ useEffect(() => {
              
           }))
         );
-        router.refresh();
       } catch (error) {
         console.error("Error fetching user posts:", error);
       } finally {
@@ -115,6 +117,25 @@ useEffect(() => {
     };
 
     fetchUserPosts();
+  }, []);
+
+  useEffect(() => {
+    // ... (your other useEffect hooks)
+    let fabInstance = null;
+
+    if (fabRef.current) {
+      fabInstance = M.FloatingActionButton.init(fabRef.current as HTMLElement, {
+        direction: 'top',
+        hoverEnabled: true,
+      });
+    }
+
+    // Cleanup when the component unmounts
+    return () => {
+      if (fabInstance) {
+        fabInstance.destroy();
+      }
+    };
   }, []);
 
   const handleOpenCreatePostModal = () => {
@@ -228,11 +249,15 @@ useEffect(() => {
     }
   };
 
-
-  const handleDropdownToggle = () => {
-    setIsDropdownOpen(!isDropdownOpen);
+  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
   };
 
+
+  const handleOpenCreateChannelModal = () => {
+    // Your logic to open a modal or navigate to the channel creation page
+    console.log("Open Create Channel Modal"); // Placeholder
+  };
 
   
   const toggleSidebar = () => {
@@ -359,9 +384,14 @@ useEffect(() => {
 
         
 
-        <Fab className="fab-bottom-right" onClick={handleOpenCreatePostModal}>
-        <AddIcon />
-        </Fab>        
+        <div className="fixed-action-btn"> {/* Container for both buttons */}
+          <a className="btn-floating" onClick={handleOpenCreatePostModal}>
+            <i className="material-icons">post_add</i>
+          </a>
+          <a className="btn-floating" onClick={handleOpenCreateChannelModal}>
+            <i className="material-icons">add_to_queue</i>
+          </a>
+        </div>     
 
         {showCreatePostModal && (
           <CreatePost onClose={handleCloseCreatePostModal} onPostCreated={handlePostCreated} />
