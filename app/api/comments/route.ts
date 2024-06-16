@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
 import { Comment } from '@/app/lib/types'
+import { createRef } from 'react';
 
 const secret = process.env.JWT_SECRET;
 const prisma = new PrismaClient();
@@ -79,12 +80,30 @@ export async function GET() {
         orderBy: { timestamp: 'desc' },
       });
 
-      const commentsByPostId = allComments.reduce((acc: { [key: string]: Comment[] }, comment: Comment) => {
-        const postId = comment.postId.toString();
-        acc[postId] = acc[postId] || [];
-        acc[postId].push(comment);
-        return acc;
-      }, {});
+      
+      const commentsByPostId = allComments.reduce<Record<string, Comment[]>>(
+        (acc, comment) => {
+          const postId = comment.postId.toString();
+      
+          if (!acc[postId]) {
+            acc[postId] = [];
+          }
+      
+          // Use TypeScript's utility type `Pick` to create a new object with only the necessary properties
+          const transformComment = (c: any): Comment => ({
+            // Existing properties from the comment object
+            ...c,
+            showDeleteCover: false,
+            ref: createRef<HTMLDivElement>(),
+            // Recursive transformation for replies (if present)
+            replies: c.replies?.map(transformComment), // Recursively map replies
+          });
+      
+          acc[postId].push(transformComment(comment)); // Transform the comment
+          return acc;
+        },
+        {} // Initialize as an empty object
+      );
 
     return NextResponse.json({ data: commentsByPostId }); // Wrap data in a "data" object
   } catch (error) {

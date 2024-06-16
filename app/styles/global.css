@@ -90,6 +90,8 @@ body {
   cursor: pointer;
 }
 
+
+
 /* Inner Card for Flipping */
 .reddit-card-inner {
   background-color: #e2e8f0; /* Background color */
@@ -562,6 +564,26 @@ body {
     4px 4px 6px rgba(0, 0, 0, 0.15);     /* Outer shadow */
   border: none;          /* Remove default button border */
   cursor: pointer;       /* Add cursor pointer on hover */
+}
+
+.comment-cover {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  transform: translateY(100%); /* Start off-screen */
+  transition: transform 0.3s ease-in-out; /* Smooth transition */
+}
+
+.slide-up {
+  transform: translateY(0); /* Slide up on screen */
 }
 
 .card-menu-slider {

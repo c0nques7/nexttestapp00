@@ -16,6 +16,7 @@ import { mdiArrowCollapseLeft, mdiMenu } from '@mdi/js';
 import { Comment } from '@/app/lib/types';
 import { useRouter } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
+import React from 'react';
 
 
 const CardSkeleton = () => (
@@ -103,6 +104,8 @@ const handleCommentClick = (comment: Comment) => {
     setReplyingToComment(comment); // Set the comment being replied to
 };
 const [isDeleted, setIsDeleted] = useState(false);
+const [showDeleteCover, setShowDeleteCover] = useState(false);
+
 const router = useRouter();
 
 
@@ -279,43 +282,101 @@ const handleAddComment = async () => {
   }
 };
 
+const handleCommentDeleteClick = (commentId: number) => {
+  setComments((prevComments) => {
+      if (!prevComments || !prevComments.comments || !prevComments.comments[id]) return prevComments;
+
+      const updatedCommentsForPost = prevComments.comments[id].map((comment) => {
+          if (comment.id === commentId) {
+              return { ...comment, showDeleteCover: true }; 
+          } else {
+              return comment;
+          }
+      });
+
+      return {
+          ...prevComments,
+          comments: {
+              ...prevComments.comments,
+              [id]: updatedCommentsForPost,
+          },
+      };
+  });
+};
+
+const handleCancelDelete = () => {
+  setComments((prevComments) => {
+      if (!prevComments || !prevComments.comments || !prevComments.comments[id]) return prevComments;
+
+      const updatedCommentsForPost = prevComments.comments[id].map((comment) => {
+          return { ...comment, showDeleteCover: false };
+      });
+
+      return {
+          ...prevComments,
+          comments: {
+              ...prevComments.comments,
+              [id]: updatedCommentsForPost,
+          },
+      };
+  });
+};
+
+const handleCommentConfirmDelete = async (commentId: number) => {
+  // Call handleDeleteComment with the provided commentId
+  await handleDeleteComment(commentId);
+  // Optionally, reset showDeleteCover state for all comments
+  setComments(prevComments => {
+    if (!prevComments || !prevComments.comments || !prevComments.comments[id]) return prevComments;
+
+    const updatedCommentsForPost = prevComments.comments[id].map(comment => ({ ...comment, showDeleteCover: false }));
+
+    return {
+      ...prevComments,
+      comments: {
+        ...prevComments.comments,
+        [id]: updatedCommentsForPost,
+      },
+    };
+  });
+};
+
 const handleDeleteComment = async (commentId: number) => {
-  if (!window.confirm('Are you sure you want to delete this comment and all its replies?')) {
-      return;
+  // 1. Fetch all replies (and their replies) to the comment being deleted
+  const repliesToDelete = await fetchAllReplies(commentId);
+
+  // 2. Delete all fetched replies
+  for (const reply of repliesToDelete) {
+    const response = await fetch(`/api/comments/${reply.id}`, { method: 'DELETE' });
+    if (!response.ok) {
+      console.error(`Failed to delete reply comment: ${reply.id}`, response.status);
+    }
   }
 
-  try {
-      // 1. Fetch all replies (and their replies) to the comment being deleted
-      const repliesToDelete = await fetchAllReplies(commentId);
-      
-      // 2. Delete all fetched replies
-      for (const reply of repliesToDelete) {
-          const response = await fetch(`/api/comments/${reply.id}`, { method: 'DELETE' });
-          if (!response.ok) {
-              console.error(`Failed to delete reply comment: ${reply.id}`, response.status);
-              // Optionally, handle errors in bulk reply deletion here
-          }
+  // 3. Delete the original comment
+  const response = await fetch(`/api/comments/${commentId}`, { method: 'DELETE' });
+  if (response.ok) {
+    // Update the comments state to reflect the deleted comments and replies
+    setComments((prevComments) => {
+      const updatedComments = prevComments.comments?.[id]?.filter(
+        comment => !repliesToDelete.includes(comment) && comment.id !== commentId
+      );
+
+      // If no comments are left for this post, remove the post ID from the comments object
+      const newComments = { ...prevComments.comments };
+      if (updatedComments?.length === 0) {
+        delete newComments[id];
+      } else {
+        newComments[id] = updatedComments;
       }
 
-      // 3. Delete the original comment
-      const response = await fetch(`/api/comments/${commentId}`, { method: 'DELETE' });
-      if (response.ok) {
-          // Update the comments state to reflect the deleted comments and replies
-          setComments((prevComments) => {
-              const updatedComments = prevComments.comments?.[id]?.filter(comment => !repliesToDelete.includes(comment) && comment.id !== commentId);
-              return {
-                  ...prevComments,
-                  comments: {
-                      ...prevComments.comments,
-                      [id]: updatedComments
-                  }
-              };
-          });
-      } else {
-          console.error("Failed to delete comment:", response.status);
-      }
-  } catch (error) {
-      console.error("Error deleting comment and replies:", error);
+      return {
+        ...prevComments,
+        comments: newComments
+      };
+    });
+  } else {
+    console.error("Failed to delete comment:", response.status);
   }
 };
 
@@ -456,7 +517,11 @@ useEffect(() => {
               postId: id,
               comments: {
                 ...prevComments.comments,
-                [id]: data.data[id] || []
+                [id]: (data.data[id] || []).map((comment: any) => ({
+                  ...comment,
+                  showDeleteCover: false, // Initialize showDeleteCover
+                  ref: createRef<HTMLDivElement>() // Initialize ref property for each comment
+                }))
               },
             }));
           } else {
@@ -507,28 +572,33 @@ return isDeleted ? null : (
             </button>
 
             <div className="comments-list">
-                            {isLoadingComments ? (
-                                <p>Loading comments...</p>
-                            ) : Array.isArray(comments.comments?.[id]) ? ( // Check if it's an array
-                              comments.comments[id].length > 0 ? ( // Check if there are comments
-                                comments.comments[id].map((comment: Comment) => (
-                                  <div key={comment.id} className="neumorphic comment-container">
-                                    {/* Null check on comment.user */}
-                                    <p>
-                                      <b>{comment.user?.username || "Unknown User"}:</b> {comment.content}
-                                    </p>
-                                    <button onClick={() => handleDeleteComment(comment.id)}>
-                                      Delete
-                                    </button>
-                                  </div>
-                                ))
-                              ) : (
-                                <p>No comments yet</p> 
-                              )
-                            ) : (
-                              <p>No comments yet</p> // Handle when comments.comments[id] is undefined
-                            )}
-                        </div>
+              {isLoadingComments ? (
+                <p>Loading comments...</p>
+              ) : Array.isArray(comments.comments?.[id]) ? (
+                comments.comments[id].map((comment: Comment) => (
+                  <div key={comment.id} className="comment-item-wrapper">
+                    <div className="neumorphic comment-container" ref={comment.ref}>
+                      <p>
+                        <b>{comment.user?.username || "Unknown User"}:</b> {comment.content}
+                      </p>
+                      <button onClick={() => handleCommentDeleteClick(comment.id)}>
+                        Delete
+                      </button>
+                    </div>
+                    {/* Comment Delete Confirmation Cover */}
+                    {comment.showDeleteCover && (
+                      <div className={`comment-cover ${comment.showDeleteCover ? 'slide-up' : ''}`}>
+                        <p>Are you sure you want to delete this comment and all its replies?</p>
+                        <button onClick={() => handleCancelDelete()}>Cancel</button>
+                        <button onClick={() => handleCommentConfirmDelete(comment.id)}>Delete</button>
+                      </div>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <p>No comments yet</p>
+              )}
+            </div>
 
                         {/* Reply Input (Conditionally Rendered) */}
                         {replyingToComment && (

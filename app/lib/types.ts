@@ -111,8 +111,10 @@ export interface Comment {
   postId: number;
   content: string;
   timestamp: Date;  
-  parentId: number | null;
-  user: {
+  parentId?: number | null;
+  showDeleteCover: boolean;
+  ref: React.RefObject<HTMLDivElement>;
+  user?: {
     id: number;
     username: string;
     email: string;
@@ -122,6 +124,10 @@ export interface Comment {
     ethereumAddress: string | null;
     settings: Prisma.JsonValue; // Assuming Prisma.JsonValue is imported
   };
+  post?: { 
+    id: number; 
+    // ...other post properties if needed
+  };
   votes: {
     id: number;
     userId: number;
@@ -130,8 +136,8 @@ export interface Comment {
     transactionHash: string | null;
     commentId: number | null;
   }[];
-  flags: Flag[];
-  replies: Comment[];  // Recursive structure for nested replies
+  replies?: Comment[];
+  flags?: any[];  // Replace 'any' with the actual type if known  // Recursive structure for nested replies
 }
 
 export interface Vote {
