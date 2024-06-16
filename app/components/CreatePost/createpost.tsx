@@ -24,7 +24,7 @@ const CreatePost = ({ onClose, onPostCreated, channels }: CreatePostProps) => {
   const [channelName, setChannelName] = useState(''); // New state for channel name
   const [selectedChannelId, setSelectedChannelId] = useState<number | null>(null);
   const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
-  
+  const [shouldReload, setShouldReload] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => { 
     e.preventDefault(); 
@@ -62,8 +62,7 @@ const CreatePost = ({ onClose, onPostCreated, channels }: CreatePostProps) => {
       } else {
         onPostCreated(); // Trigger refresh in MyHomePage
         onClose(); // Close the modal
-        // Redirect to MyHomePage to see the new post immediately
-         window.location.reload();
+        setShouldReload(true);
       }
     } catch (error) {
       console.error("Error creating post:", error);
@@ -71,6 +70,12 @@ const CreatePost = ({ onClose, onPostCreated, channels }: CreatePostProps) => {
     }
   };
 
+  useEffect(() => {
+    if (shouldReload) {
+        router.refresh();
+        setShouldReload(false); // Reset the flag to prevent multiple reloads
+    }
+}, [shouldReload, router]);
 
 
 
