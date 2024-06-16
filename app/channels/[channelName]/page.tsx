@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation'; 
+import { useSearchParams } from 'next/navigation'; 
 import PostCard from '@/app/components/PostCard/postcard';
 import { Post } from '@/app/lib/types';
 import { PostType, ContentProvider } from '@prisma/client';
 
 function ChannelPage() {
-  const { channelName } = useParams();
+  const searchParams = useSearchParams();
+  const channelName = searchParams.get('channelName');
   const [channelPosts, setChannelPosts] = useState<Post[]>([]);
   const [expandedPostId, setExpandedPostId] = useState<number | null>(null);
   const [containerWidth, setContainerWidth] = useState(0);
