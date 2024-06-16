@@ -14,6 +14,7 @@ import { BiReset } from 'react-icons/bi';
 import Icon from '@mdi/react';
 import { mdiArrowCollapseLeft, mdiMenu } from '@mdi/js';
 import { Comment } from '@/app/lib/types';
+import { useRouter } from 'next/navigation';
 
 
 const CardSkeleton = () => (
@@ -221,7 +222,8 @@ const confirmDelete = async () => {
   setIsDeleteConfirmationOpen(false); // Close the confirmation after deleting (or error)
   setIsCardMenuOpen(false); // Close the menu
   setIsMarkedDeleted(true);
-  window.location.reload();
+  const router = useRouter(); // Get the router instance inside the function
+      router.refresh();
 };
 
 const handleAddComment = async () => {
