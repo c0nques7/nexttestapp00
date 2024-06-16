@@ -41,7 +41,10 @@ body {
 }
 
 .channel-search-bar-container{
-  width: 99%;
+  position: relative;
+  width: 50%;
+  top: 50%;
+  right: -25%;
   background-color: #e0e5ec; /* Light background color */
   border-radius: 25px; /* Rounded corners */
   margin-bottom: 20px;
@@ -49,6 +52,7 @@ body {
     15px 15px 30px #d1d9e6, /* Light shadow (top-left) */
     -15px -15px 30px #ffffff; /* Dark shadow (bottom-right) */
 }
+
 
 .react-search-autocomplete__input-field {
   /* Styles for the search input field */

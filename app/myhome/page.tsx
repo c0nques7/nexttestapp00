@@ -152,21 +152,22 @@ export default function MyHomePage() {
 
   useEffect(() => {
     // ... (your other useEffect hooks)
-    let fabInstance = null;
+    let fabInstance = null; 
 
-    if (fabRef.current) {
-      fabInstance = M.FloatingActionButton.init(fabRef.current as HTMLElement, {
-        direction: 'top',
-        hoverEnabled: true,
+    if (fabRef.current && typeof M.FloatingActionButton.init === "function") {
+      const instance = M.FloatingActionButton.init(fabRef.current, {
+        // ... your Materialize options ...
       });
-    }
-
-    // Cleanup when the component unmounts
-    return () => {
-      if (fabInstance) {
-        fabInstance.destroy();
+  
+      if (instance instanceof M.FloatingActionButton) { // Type guard
+        fabInstance = instance;
+      } else {
+        // Handle the case where init doesn't return M.FloatingActionButton
+        console.error('Unexpected type returned from M.FloatingActionButton.init');
       }
-    };
+    }
+  
+    // ...
   }, []);
 
   useEffect(() => {
