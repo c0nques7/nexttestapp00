@@ -46,7 +46,6 @@ interface PostCardProps {
   index: number; 
   containerWidth: number;
   comments?: CommentsProps;
-  onPostDeleted: (postId: number) => void;
 }
 
 interface Position {
