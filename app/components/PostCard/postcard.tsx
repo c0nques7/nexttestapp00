@@ -534,8 +534,11 @@ useEffect(() => {
         }
       }
     };
-    fetchComments();
+    if (typeof window !== 'undefined') { // Check if window is defined
+      fetchComments();
+    }
   }, [id, isFlipped]);
+  
 
 
  
