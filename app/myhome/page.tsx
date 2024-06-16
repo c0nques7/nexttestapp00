@@ -259,6 +259,27 @@ export default function MyHomePage() {
     }
   };
 
+  const handlePostDeleted = async (postId: number) => {
+    try {
+      const response = await fetch(`/api/post/${postId}`, { method: 'DELETE' });
+      if (response.ok) {
+        // Optimistically update the UI (remove the post immediately)
+        setUserPosts(prevPosts => prevPosts.filter(post => post.id !== postId)); 
+
+        // Revalidate or refetch data (optional but recommended)
+        // fetchPosts(); // If you don't rely on revalidation in the API route
+
+        // You can add a success message or other UI feedback here
+      } else {
+        // Handle the error case (e.g., display an error message)
+        console.error('Error deleting post:', response.statusText); 
+        // You might want to revert the optimistic UI update here
+      }
+    } catch (err) {
+      console.error('Error deleting post:', err);
+    }
+  };
+
 
 
   const handleOpenCreateChannelModal = () => {
@@ -457,6 +478,7 @@ export default function MyHomePage() {
               onCardClick={handleCardClick} 
               index={index} 
               containerWidth={containerWidth}
+              onPostDeleted={handlePostDeleted}
               />
             ))
           }
