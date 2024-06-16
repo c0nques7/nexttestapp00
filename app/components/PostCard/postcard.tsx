@@ -586,7 +586,7 @@ return isDeleted ? null : (
                       </button>
                     </div>
                     {/* Comment Delete Confirmation Cover */}
-                    {comment.showDeleteCover && (
+                    {comment.showDeleteCover && comment.ref.current && (
                       <div className={`comment-cover ${comment.showDeleteCover ? 'slide-up' : ''}`}>
                         <p>Are you sure you want to delete this comment and all its replies?</p>
                         <button onClick={() => handleCancelDelete()}>Cancel</button>
