@@ -5,12 +5,23 @@ import { useParams } from 'next/navigation';
 import PostCard from '@/app/components/PostCard/postcard';
 import { Post } from '@/app/lib/types';
 import { PostType, ContentProvider } from '@prisma/client';
+import { Rnd } from 'react-rnd';
+import { CardPositionsProvider, useCardPositions } from '@/app/context/cardPositionsContext';
 
 function ChannelPage() {
   const { channelName } = useParams();
   const [channelPosts, setChannelPosts] = useState<Post[]>([]);
   const [expandedPostId, setExpandedPostId] = useState<number | null>(null);
   const [containerWidth, setContainerWidth] = useState(0);
+  const { cardPositions, setCardPosition } = useCardPositions();
+
+  const handleDragStop = (postId: string, { x, y }: { x: number; y: number }) => {
+    setCardPosition(postId, { x, y });
+  };
+
+  const handleResizeStop = (postId: string, size: { width: number; height: number }, position: { x: number; y: number }) => {
+    setCardPosition(postId, position);
+  };
 
   useEffect(() => {
     const fetchChannelPosts = async () => {
@@ -45,6 +56,18 @@ function ChannelPage() {
       <h1>Channel: {channelName}</h1>
       <div className="posts-container">
         {channelPosts.map((post, index) => (
+          <Rnd
+            key={post.id}
+            default={{
+              x: cardPositions[post.id]?.x || 0,
+              y: cardPositions[post.id]?.y || 0,
+              width: 350, // Default width
+              height: 350, // Default height
+            }}
+            onDragStop={(e, d) => handleDragStop(post.id.toString(), d)}
+            onResizeStop={(e, dir, ref, delta, pos) => handleResizeStop(post.id.toString(), { width: ref.offsetWidth, height: ref.offsetHeight }, pos)}
+            enableResizing={{ bottomRight: true }} // Enable resizing from the bottom right corner
+          >
           <PostCard
           key={post.id}
           id={post.id.toString()}
@@ -59,6 +82,7 @@ function ChannelPage() {
           index={index} 
           containerWidth={containerWidth}
           />
+          </Rnd>
         ))}
       </div>
     </div>
