@@ -15,6 +15,7 @@ import Icon from '@mdi/react';
 import { mdiArrowCollapseLeft, mdiMenu } from '@mdi/js';
 import { Comment } from '@/app/lib/types';
 import { useRouter } from 'next/navigation';
+import { revalidatePath } from 'next/cache';
 
 
 const CardSkeleton = () => (
@@ -45,6 +46,7 @@ interface PostCardProps {
   index: number; 
   containerWidth: number;
   comments?: CommentsProps;
+  onPostDeleted: (postId: number) => void;
 }
 
 interface Position {
@@ -101,6 +103,9 @@ const [replyingToComment, setReplyingToComment] = useState<Comment | null>(null)
 const handleCommentClick = (comment: Comment) => {
     setReplyingToComment(comment); // Set the comment being replied to
 };
+const [isDeleted, setIsDeleted] = useState(false);
+const router = useRouter();
+
 
 
 
@@ -209,6 +214,7 @@ const confirmDelete = async () => {
       // Post was successfully deleted. Update UI or state as needed.
       // For example, you could trigger a re-fetch of posts.
       console.log("Post deleted successfully!");
+      setIsDeleted(true);
     } else {
       // Handle the error (e.g., show an error message to the user).
       console.log(`Failed to delete with url: ${deleteUrl} post: `, response.status);
@@ -218,12 +224,10 @@ const confirmDelete = async () => {
     console.log("Error deleting post:");
     console.error("Error deleting post:", error);
   }
-
   setIsDeleteConfirmationOpen(false); // Close the confirmation after deleting (or error)
   setIsCardMenuOpen(false); // Close the menu
+  
   setIsMarkedDeleted(true);
-  const router = useRouter(); // Get the router instance inside the function
-      router.refresh();
 };
 
 const handleAddComment = async () => {
@@ -418,6 +422,12 @@ const handleCardClick = () => {
     }
 };
 
+useEffect(() => {
+  if (isMarkedDeleted) {
+    router.refresh();
+  }
+}, [isMarkedDeleted, router]);
+
   useEffect(() => {
     setZIndex(isSelected ? 1000 : index + 1); // Assuming cards start at z-index 1
   }, [isSelected]);
@@ -465,7 +475,7 @@ const handleCardClick = () => {
 
 
  
-return (
+return isDeleted ? null : (
   <div className={`post-item ${isSelected ? "selected" : ""} ${isMarkedDeleted ? 'deleted' : ''}`}  {...bindDrag()}>
     <Rnd
       ref={nodeRef}
@@ -606,3 +616,5 @@ return (
 }
 
 export default PostCard;
+
+

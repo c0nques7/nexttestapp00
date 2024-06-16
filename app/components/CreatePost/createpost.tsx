@@ -52,6 +52,7 @@ const CreatePost = ({ onClose, onPostCreated, channels }: CreatePostProps) => {
           postType,
           isPublic,
           channelId: selectedChannelId,
+          channelName: selectedChannel ? selectedChannel.name : null,
         }),
       });
 

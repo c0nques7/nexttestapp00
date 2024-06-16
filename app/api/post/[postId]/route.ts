@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
+import { revalidatePath } from 'next/cache';
+
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const prisma = new PrismaClient();
@@ -64,8 +66,9 @@ export async function DELETE(
     await prisma.post.delete({
       where: { id: postId },
     });
-
+    
     console.log('Post deleted successfully (ID:', postId, ')');
+    revalidatePath('/myhome');
     return NextResponse.json(
       { message: 'Post deleted successfully' },
       { status: 200 },
