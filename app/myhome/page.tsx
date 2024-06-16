@@ -71,6 +71,7 @@ export default function MyHomePage() {
   const [filteredChannels, setFilteredChannels] = useState<Channel[]>([]);
   const [showAutocomplete, setShowAutocomplete] = useState(false);
   
+  
 
   const handleOpenCreatePostModal = () => {
     setShowCreatePostModal(true);
@@ -102,10 +103,11 @@ export default function MyHomePage() {
   }, []);
 
   useEffect(() => {
-    // Check if the ref element exists and has the "modal" class
-    if (createChannelModalRef.current && !createChannelModalRef.current.classList.contains('modal')) {
-      createChannelModalRef.current.classList.add('modal');
-      // Now you can safely initialize the modal
+    if (
+      typeof window !== 'undefined' &&
+      createChannelModalRef.current &&
+      !createChannelModalRef.current.classList.contains('modal')
+    ) {
       const modalInstance = M.Modal.init(createChannelModalRef.current);
 
       // Clean up the modal instance when the component unmounts
@@ -153,24 +155,12 @@ export default function MyHomePage() {
   }, []);
 
   useEffect(() => {
-    // ... (your other useEffect hooks)
-    let fabInstance = null; 
-
-    if (fabRef.current && typeof M.FloatingActionButton.init === "function") {
-      const instance = M.FloatingActionButton.init(fabRef.current, {
-        // ... your Materialize options ...
+    if (typeof window !== 'undefined' && fabRef.current) {
+      M.FloatingActionButton.init(fabRef.current, {
+        // your options
       });
-  
-      if (instance instanceof M.FloatingActionButton) { // Type guard
-        fabInstance = instance;
-      } else {
-        // Handle the case where init doesn't return M.FloatingActionButton
-        console.error('Unexpected type returned from M.FloatingActionButton.init');
-      }
     }
-  
-    // ...
-  }, []);
+  }, []); 
 
   useEffect(() => {
     const fetchTickers = async () => {
@@ -256,27 +246,6 @@ export default function MyHomePage() {
     } catch (error) {
       console.error('Error adding ticker:', error);
       setAddTickerResponse({ error: 'Failed to add ticker' }); 
-    }
-  };
-
-  const handlePostDeleted = async (postId: number) => {
-    try {
-      const response = await fetch(`/api/post/${postId}`, { method: 'DELETE' });
-      if (response.ok) {
-        // Optimistically update the UI (remove the post immediately)
-        setUserPosts(prevPosts => prevPosts.filter(post => post.id !== postId)); 
-
-        // Revalidate or refetch data (optional but recommended)
-        // fetchPosts(); // If you don't rely on revalidation in the API route
-
-        // You can add a success message or other UI feedback here
-      } else {
-        // Handle the error case (e.g., display an error message)
-        console.error('Error deleting post:', response.statusText); 
-        // You might want to revert the optimistic UI update here
-      }
-    } catch (err) {
-      console.error('Error deleting post:', err);
     }
   };
 
@@ -478,7 +447,6 @@ export default function MyHomePage() {
               onCardClick={handleCardClick} 
               index={index} 
               containerWidth={containerWidth}
-              onPostDeleted={handlePostDeleted}
               />
             ))
           }
