@@ -147,7 +147,9 @@ export default function MyHomePage() {
       }
     };
 
-    fetchUserPosts();
+    if (typeof window !== 'undefined') {
+      fetchUserPosts();
+    }
   }, []);
 
   useEffect(() => {
@@ -256,6 +258,7 @@ export default function MyHomePage() {
       setAddTickerResponse({ error: 'Failed to add ticker' }); 
     }
   };
+
 
 
   const handleOpenCreateChannelModal = () => {
