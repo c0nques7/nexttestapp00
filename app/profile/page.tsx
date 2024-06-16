@@ -38,17 +38,6 @@ interface FetchPostsResponse {
     const [containerWidth, setContainerWidth] = useState(0);
     const [expandedPostId, setExpandedPostId] = useState<number | null>(null);
     
-    useEffect(() => {
-      const getContainerWidth = () => {
-        if (containerRef.current) {
-          setContainerWidth(containerRef.current.offsetWidth);
-        }
-      };
-  
-      getContainerWidth();
-      window.addEventListener('resize', getContainerWidth);
-      return () => window.removeEventListener('resize', getContainerWidth);
-    }, []);
   
     useEffect(() => {
       const fetchPublicPosts = async () => {

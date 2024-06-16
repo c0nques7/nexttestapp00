@@ -86,23 +86,6 @@ export default function MyHomePage() {
   };
 
   useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        const response = await fetch('/api/settings');
-        if (response.ok) {
-          const data = await response.json();
-          setIsStockSearchEnabled(data.settings.isStockSearchEnabled);
-          setIsRedditSearchEnabled(data.settings.isRedditSearchEnabled);
-        }
-      } catch (error) {
-        console.error("Error fetching settings:", error);
-      }
-    };
-
-    fetchSettings();
-  }, []);
-
-  useEffect(() => {
     if (
       typeof window !== 'undefined' &&
       createChannelModalRef.current &&
@@ -120,24 +103,45 @@ export default function MyHomePage() {
   }, []);
 
   useEffect(() => {
+    const initializeComponents = () => {
+      if (fabRef.current && typeof M.FloatingActionButton.init === "function") {
+        M.FloatingActionButton.init(fabRef.current, {
+          // ... (your Materialize options) ...
+        });
+      }
+  
+      if (
+        createChannelModalRef.current &&
+        !createChannelModalRef.current.classList.contains('modal')
+      ) {
+        const modalInstance = M.Modal.init(createChannelModalRef.current);
+        // Clean up the modal instance when the component unmounts
+        return () => {
+          if (modalInstance) {
+            modalInstance.destroy();
+          }
+        };
+      }
+    };
+  
     const fetchUserPosts = async () => { 
       setIsLoading(true);
-
+  
       try {
         const response = await fetch('/api/fetchposts', { cache: 'no-store'}); // Fetch only user posts
         if (!response.ok) {
           throw new Error('Failed to fetch user posts');
         }
-
+  
         const userData: FetchPostsResponse = await response.json();
         setUserPosts(
           userData.userPosts.map((post) => ({
             ...post,
             contentProvider: ContentProvider.PEAKEFEED, // Add the contentProvider
             channel: {
-              id: post.channelId,       // You need the channelId in the API response
+              id: post.channelId,       // You need the channelId in the API response
               name: post.channel,
-              isCorpAccount: false,       // Use the channel string as the name
+              isCorpAccount: false,       // Use the channel string as the name
             },
           }))
         );
@@ -148,29 +152,16 @@ export default function MyHomePage() {
         
       }
     };
-
-    if (typeof window !== 'undefined') {
-      fetchUserPosts();
-    }
-  }, []);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined' && fabRef.current) {
-      M.FloatingActionButton.init(fabRef.current, {
-        // your options
-      });
-    }
-  }, []); 
-
-  useEffect(() => {
+  
+  
     const fetchTickers = async () => {
       try {
         const response = await fetch('/api/tickers'); 
         if (response.ok) {
           const data = await response.json();
-
+  
           // Split the symbols string into an array before setting the state
-          if (typeof data.symbols === 'string') {  
+          if (typeof data.symbols === 'string') {  
             setTickerSymbols(data.symbols.split(',').map((symbol: string) => symbol.trim())); // Trim any extra spaces
           } else {
             console.error('Invalid data format for symbols:', data.symbols);
@@ -183,8 +174,26 @@ export default function MyHomePage() {
         console.error('Error fetching tickers:', error);
       }
     };
-
-    fetchTickers();
+  
+    const fetchSettings = async () => {
+      try {
+        const response = await fetch('/api/settings');
+        if (response.ok) {
+          const data = await response.json();
+          setIsStockSearchEnabled(data.settings.isStockSearchEnabled);
+          setIsRedditSearchEnabled(data.settings.isRedditSearchEnabled);
+        }
+      } catch (error) {
+        console.error("Error fetching settings:", error);
+      }
+    };
+  
+    if (typeof window !== 'undefined') {
+      initializeComponents();
+      fetchUserPosts();
+      fetchTickers();
+      fetchSettings();
+    }
   }, []); 
 
   const fetchStockData = async () => {

@@ -43,7 +43,6 @@ export function CardPositionsProvider({ children }: CardPositionsProviderProps) 
   const handleResetPositions = () => { // This is the function we need to pass
     setCardPositions({});
     localStorage.removeItem('cardPositions');
-    window.location.reload();
   };
 
   return (

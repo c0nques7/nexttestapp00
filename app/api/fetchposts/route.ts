@@ -6,7 +6,7 @@ import { cookies } from 'next/headers';
 const JWT_SECRET = process.env.JWT_SECRET;
 const prisma = new PrismaClient();
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   const cookieStore = cookies();
 
   try {
