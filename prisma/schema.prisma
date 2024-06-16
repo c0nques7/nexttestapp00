@@ -11,65 +11,67 @@ datasource db {
 }
 
 model site_users {
-  id       String  @id @default(cuid())
-  email    String  @unique
-  username String  @unique
+  id       String   @id @default(cuid())
+  email    String   @unique
+  username String   @unique
   password String
   mySubs   String[]
-  userPost String  @default(uuid())
+  userPost String   @default(uuid())
 }
 
 model User {
-  id             Int         @id @default(autoincrement())
-  username       String      @unique
-  email          String      @unique
-  passwordHash   String
-  isVerified   Boolean  @default(true)
-  role           Role
-  ethereumAddress String?  
-  posts          Post[]
-  votes          Vote[]
-  comments        Comment[]
-  following      Follow[]    @relation("following")
-  followers      Follow[]    @relation("followedBy")
-  moderatorIn    Moderator[]
-  flags          Flag[]
-  tickers   Ticker[] // One-to-Many relation
-  settings  Json? 
+  id               Int                   @id @default(autoincrement())
+  username         String                @unique
+  email            String                @unique
+  passwordHash     String
+  isVerified       Boolean               @default(true)
+  role             Role
+  ethereumAddress  String?
+  settings         Json?
+  posts            Post[]
+  votes            Vote[]
+  comments         Comment[]
+  following        Follow[]              @relation("following")
+  followers        Follow[]              @relation("followedBy")
+  moderatorIn      Moderator[]
+  flags            Flag[]
+  tickers          Ticker[]
+  followedChannels ChannelSubscription[]
 
   @@map("users")
 }
 
 model Comment {
-  id         Int      @id @default(autoincrement())
-  userId     Int
-  user       User     @relation(fields: [userId], references: [id])
-  postId     Int
-  post       Post     @relation(fields: [postId], references: [id])
-  content    String
-  timestamp  DateTime @default(now())
-  parentId   Int?
-  parent     Comment? @relation("replies", fields: [parentId], references: [id], onDelete: Restrict, onUpdate: Restrict ) 
-  replies    Comment[] @relation("replies")
-  votes      Vote[]    @relation("commentVotes") 
-  flags      Flag[]    @relation("commentFlags") 
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  postId    Int
+  content   String
+  timestamp DateTime  @default(now())
+  parentId  Int?
+  user      User      @relation(fields: [userId], references: [id])
+  post      Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  parent    Comment?  @relation("replies", fields: [parentId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  replies   Comment[] @relation("replies")
+  votes     Vote[]    @relation("commentVotes")
+  flags     Flag[]    @relation("commentFlags")
 
   @@map("comments")
 }
 
 model Post {
-  id             Int       @id @default(autoincrement())
-  userId         Int?
-  user           User?      @relation(fields: [userId], references: [id])
-  content        String
-  channelId      Int?
-  channel        Channel?  @relation(fields: [channelId], references: [id])
-  timestamp      DateTime  @default(now())
-  isPublic       Boolean   @default(true)
-  postType       PostType
-  contentProvider       ContentProvider 
-  mediaUrl       String?
-  transactionHash String?  @unique
+  id              Int             @id @default(autoincrement())
+  userId          Int?
+  content         String
+  channelId       Int?
+  channelName     String
+  timestamp       DateTime        @default(now())
+  isPublic        Boolean         @default(true)
+  postType        PostType
+  contentProvider ContentProvider
+  mediaUrl        String?
+  transactionHash String?         @unique
+  user            User?           @relation(fields: [userId], references: [id])
+  channel         Channel?        @relation(fields: [channelId], references: [id])
   votes           Vote[]
   comments        Comment[]
   flags           Flag[]
@@ -78,47 +80,57 @@ model Post {
 }
 
 model Vote {
-  id             Int       @id @default(autoincrement())
-  userId         Int
-  user           User      @relation(fields: [userId], references: [id])
-  postId         Int
-  post           Post      @relation(fields: [postId], references: [id])
-  voteValue      Int
+  id              Int      @id @default(autoincrement())
+  userId          Int
+  postId          Int
+  voteValue       Int
   transactionHash String?
-  commentId Int?
-  comment   Comment? @relation("commentVotes", fields: [commentId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  commentId       Int?
+  user            User     @relation(fields: [userId], references: [id])
+  post            Post     @relation(fields: [postId], references: [id])
+  comment         Comment? @relation("commentVotes", fields: [commentId], references: [id], onDelete: SetNull, onUpdate: Cascade)
 
   @@map("votes")
 }
 
 model Channel {
-  id             Int         @id @default(autoincrement())
-  name       String    @unique
-  posts      Post[]
-  moderators Moderator[]
-  isCorpAccount Boolean     @default(false)
+  id            Int                   @id @default(autoincrement())
+  name          String                @unique
+  isCorpAccount Boolean               @default(false)
+  posts         Post[]
+  moderators    Moderator[]
+  subscriptions ChannelSubscription[]
 
   @@map("channels")
 }
 
+model ChannelSubscription {
+  userId    Int
+  channelId Int
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  channel   Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+
+  @@id([userId, channelId])
+}
+
 model Moderator {
   userId    Int
-  user      User      @relation(fields: [userId], references: [id])
   channelId Int
-  channel   Channel   @relation(fields: [channelId], references: [id])
+  user      User    @relation(fields: [userId], references: [id])
+  channel   Channel @relation(fields: [channelId], references: [id])
 
   @@id([userId, channelId])
   @@map("moderators")
 }
 
 model Flag {
-  id     Int    @id @default(autoincrement())
-  userId Int
-  user   User   @relation(fields: [userId], references: [id])
-  postId Int
-  post   Post   @relation(fields: [postId], references: [id])
-  reason String
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  postId    Int
+  reason    String
   commentId Int?
+  user      User     @relation(fields: [userId], references: [id])
+  post      Post     @relation(fields: [postId], references: [id])
   comment   Comment? @relation("commentFlags", fields: [commentId], references: [id], onDelete: SetNull)
 
   @@map("flags")
@@ -134,10 +146,10 @@ model Follow {
 }
 
 model Ticker {
-  id     Int     @id @default(autoincrement())
-  symbol String  @unique
-  user   User   @relation(fields: [userId], references: [id])
+  id     Int    @id @default(autoincrement())
+  symbol String @unique
   userId Int
+  user   User   @relation(fields: [userId], references: [id])
 }
 
 enum Role {

@@ -1,6 +1,6 @@
 // types.ts
 
-import { Role, Prisma, User } from "@prisma/client";
+import { Role, Prisma, User, ContentProvider, PostType } from "@prisma/client";
 
 // Main Post Data Interface (RedditPostData)
 export interface RedditPostData {
@@ -160,3 +160,47 @@ export interface Flag {
   commentId?: number | null; // Optional, as not all flags are for comments
   comment?: Comment | null; // Optional, and can be null if not fetched
 }
+
+export interface Channel{
+  id: number;
+  name: string;
+  isCorpAccount: boolean;
+  
+}
+
+export interface CreatePostRequestBody {
+  content: string;
+    postType: PostType;
+    contentProvider?: string; 
+    mediaUrl?: string | null;
+    isPublic?: boolean;
+    transactionHash?: string | null;
+    postDestination: 'SELF' | 'CHANNEL'; // Add postDestination
+    channelId?: number | null; 
+    channelName?: string | null;
+}
+
+export interface Post {
+  userId?: number;
+  channel: Channel | null;
+  channelId?: number;
+  contentProvider?: ContentProvider;
+  channelName?: string | null;
+  id: number;
+  title?: string;
+  content?: string;
+  subreddit?: string;
+  author?: string;
+  timestamp: string;
+  mediaUrl?: string;
+  postType?: 'TEXT' | 'IMAGE' | 'VIDEO';
+  permalink?: string;
+  thumbnail?: string | null;
+  url?: string;
+  score?: number;
+  num_comments?: number;
+  is_video?: boolean;
+  created_utc?: number;
+}
+
+

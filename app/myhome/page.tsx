@@ -1,15 +1,16 @@
 'use client';
 import '@/app/styles/global.css';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, ButtonHTMLAttributes } from 'react';
 import PostCard from '../components/PostCard/postcard';
 import FinanceCard from '../components/FinanceCard/financecard';
 import { useRouter } from 'next/navigation';
 import CreatePost from '../components/CreatePost/createpost';
+import CreateChannel from '../components/CreateChannel/createchannel';
 import { PostType, ContentProvider } from '@prisma/client';
-import { RedditPostData, RedditApiResponse } from '../lib/types';
-import { Channel } from '@prisma/client';
+import { RedditPostData, RedditApiResponse, Channel, Post } from '../lib/types';
 import { CardPositionsProvider, useCardPositions } from '@/app/context/cardPositionsContext';
 import M from 'materialize-css';
+import { ReactSearchAutocomplete } from 'react-search-autocomplete' // Import the library
 
 interface FetchPostsResponse {
   userPosts: {
@@ -17,32 +18,15 @@ interface FetchPostsResponse {
     content: string;
     userId: number;
     channel: string;
+    channelId: number;
     timestamp: string;
     postType: PostType;
     mediaUrl: string;
   }[];
 }
 
-interface Post {
-  userId?: number;
-  channel?: string;
-  contentProvider: ContentProvider;
-  id: number;
-  title?: string;
-  content?: string;
-  subreddit?: string;
-  author?: string;
-  timestamp: string;
-  mediaUrl?: string;
-  postType?: 'TEXT' | 'IMAGE' | 'VIDEO';
-  permalink?: string;
-  thumbnail?: string | null;
-  url?: string;
-  score?: number;
-  num_comments?: number;
-  is_video?: boolean;
-  created_utc?: number;
-}
+
+
 
 export default function MyHomePage() {
   const router = useRouter();
@@ -65,56 +49,73 @@ export default function MyHomePage() {
   const [tickerSymbols, setTickerSymbols] = useState<string[]>([]); // Use string for ticker symbols
   const [newTicker, setNewTicker] = useState('');
   const [addTickerResponse, setAddTickerResponse] = useState<
-  { message: string } | { error: string } | null
-  >(null);
+    { message: string } | { error: string } | null
+    >(null);
   const postsContainerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [channels, setChannels] = useState<Channel[]>([]);  // Store channel names from API
+  const [searchResults, setSearchResults] = useState<string[]>([]);
+  const [channelSearchQuery, setChannelSearchQuery] = useState(''); // Separate state for channel search
+  const [addChannelResponse, setAddChannelResponse] = useState<
+    { message: string } | { error: string } | null
+      >(null);
+  const [newChannel, setNewChannel] = useState('');
+  const [searchQuery, setSearchQuery] = useState(''); // Make sure this is declared 
   const fabRef = useRef<any>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<Channel[]>([]);
   const open = Boolean(anchorEl);
+  const [isCreateChannelModalOpen, setIsCreateChannelModalOpen] = useState(false);
+  const [newChannelName, setNewChannelName] = useState('');
+  const [createChannelError, setCreateChannelError] = useState<string | null>(null);
+  const createChannelModalRef = useRef<HTMLDivElement | null>(null);
+  const [filteredChannels, setFilteredChannels] = useState<Channel[]>([]);
+  const [showAutocomplete, setShowAutocomplete] = useState(false);
+  
 
-  const handleSearch = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const query = event.target.value;
-    setSearchQuery(query);
+  const handleOpenCreatePostModal = () => {
+    setShowCreatePostModal(true);
+  };
 
-    if (query.trim() !== '') {
-      // Fetch channels matching the search query
+  const handleCloseCreatePostModal = () => {
+    setShowCreatePostModal(false);
+  };
+
+  const handlePostCreated = () => {
+    setShowCreatePostModal(false);
+  };
+
+  useEffect(() => {
+    const fetchSettings = async () => {
       try {
-        const response = await fetch(`/api/searchchannels?query=${query}`);
+        const response = await fetch('/api/settings');
         if (response.ok) {
           const data = await response.json();
-          setSearchResults(data.channels); // Assuming the API response structure
-        } else {
-          console.error('Error fetching search results');
+          setIsStockSearchEnabled(data.settings.isStockSearchEnabled);
+          setIsRedditSearchEnabled(data.settings.isRedditSearchEnabled);
         }
       } catch (error) {
-        console.error('Error fetching search results:', error);
+        console.error("Error fetching settings:", error);
       }
-    } else {
-      setSearchResults([]); // Clear results when search is empty
+    };
+
+    fetchSettings();
+  }, []);
+
+  useEffect(() => {
+    // Check if the ref element exists and has the "modal" class
+    if (createChannelModalRef.current && !createChannelModalRef.current.classList.contains('modal')) {
+      createChannelModalRef.current.classList.add('modal');
+      // Now you can safely initialize the modal
+      const modalInstance = M.Modal.init(createChannelModalRef.current);
+
+      // Clean up the modal instance when the component unmounts
+      return () => {
+        if (modalInstance) {
+          modalInstance.destroy();
+        }
+      };
     }
-  };
-
-  const handleChannelClick = (channelName: string) => {
-    // Navigate to the channel page
-    router.push(`/channel/${channelName}`);
-  };
-
-useEffect(() => {
-  const getContainerWidth = () => {
-    if (postsContainerRef.current) {
-      setContainerWidth(postsContainerRef.current.offsetWidth);
-    }
-  };
-
-  getContainerWidth(); // Initial calculation on mount
-  window.addEventListener('resize', getContainerWidth); // Update on resize
-
-  return () => window.removeEventListener('resize', getContainerWidth); // Cleanup
-}, []);
-
+  }, []);
 
   useEffect(() => {
     const fetchUserPosts = async () => { 
@@ -130,8 +131,12 @@ useEffect(() => {
         setUserPosts(
           userData.userPosts.map((post) => ({
             ...post,
-            contentProvider: ContentProvider.PEAKEFEED,
-             
+            contentProvider: ContentProvider.PEAKEFEED, // Add the contentProvider
+            channel: {
+              id: post.channelId,       // You need the channelId in the API response
+              name: post.channel,
+              isCorpAccount: false,       // Use the channel string as the name
+            },
           }))
         );
       } catch (error) {
@@ -162,36 +167,6 @@ useEffect(() => {
         fabInstance.destroy();
       }
     };
-  }, []);
-
-  const handleOpenCreatePostModal = () => {
-    setShowCreatePostModal(true);
-  };
-
-  const handleCloseCreatePostModal = () => {
-    setShowCreatePostModal(false);
-  };
-
-  const handlePostCreated = () => {
-    router.push('/myhome');
-    window.location.reload();
-  };
-
-  useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        const response = await fetch('/api/settings');
-        if (response.ok) {
-          const data = await response.json();
-          setIsStockSearchEnabled(data.settings.isStockSearchEnabled);
-          setIsRedditSearchEnabled(data.settings.isRedditSearchEnabled);
-        }
-      } catch (error) {
-        console.error("Error fetching settings:", error);
-      }
-    };
-
-    fetchSettings();
   }, []);
 
   useEffect(() => {
@@ -255,6 +230,12 @@ useEffect(() => {
     setShowChart(true);
   };
 
+  const handleCloseCreateChannelModal = () => {
+    setIsCreateChannelModalOpen(false);
+    setNewChannelName('');
+    setCreateChannelError(null);
+  };
+
   const handleAddTicker = async () => {
     try {
       const response = await fetch(`/api/tickers?symbol=${encodeURIComponent(newTicker)}`, {
@@ -275,13 +256,9 @@ useEffect(() => {
     }
   };
 
-  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-
 
   const handleOpenCreateChannelModal = () => {
-    // Your logic to open a modal or navigate to the channel creation page
+    setIsCreateChannelModalOpen(true);
     console.log("Open Create Channel Modal"); // Placeholder
   };
 
@@ -319,6 +296,85 @@ useEffect(() => {
     }
   };
 
+
+  
+
+
+  useEffect(() => {
+    const fetchChannels = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch('/api/channels');
+        if (response.ok) {
+          const data = await response.json();
+          setChannels(data);
+        } else {
+          console.error('Failed to fetch channels:', response.status);
+        }
+      } catch (error) {
+        console.error('Error fetching channels:', error);
+      }
+    };
+
+    fetchChannels();
+  }, []);
+
+  const handleOnSelect = (item: Channel) => {
+    handleNavigateToChannel(item.name);
+  };
+
+  const formatResult = (item: Channel) => {
+    return (
+      <>
+        <span>{item.name}</span>
+      </>
+    );
+  };
+
+  const handleChannelSearch = async (query: string) => {
+    setChannelSearchQuery(query);
+    setShowAutocomplete(true); // Show autocomplete on typing
+
+    try {
+        const response = await fetch(`/api/channels?query=${encodeURIComponent(query)}`);
+        if (response.ok) {
+            const data = await response.json();
+            setFilteredChannels(data);
+        } else {
+            console.error('Failed to search channels:', response.status);
+            setError('Failed to search channels');
+        }
+    } catch (error) {
+        console.error('Error searching channels:', error);
+        setError('An error occurred while searching for channels');
+    }
+  };
+
+  const handleNavigateToChannel = (channelName: string) => {
+    router.push(`/channels/${channelName}`); // Navigate using router.push
+  };
+
+
+  
+  const handleAddChannel = async () => {
+  try {
+    const response = await fetch(`/api/channels?name=${encodeURIComponent(newChannel)}`, {
+      method: 'POST',
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      setAddChannelResponse(data);
+      setNewChannel('');
+    } else {
+      const errorData = await response.json();
+      setAddChannelResponse(errorData);
+    }
+  } catch (error) {
+    console.error('Error adding channel:', error);
+    setAddChannelResponse({ error: 'Failed to add channel' });
+  }
+};
   
 
   return (
@@ -337,6 +393,34 @@ useEffect(() => {
             <a href="/settings" className="sidebar-link">Settings</a>
           </div>
         </div>
+
+        {/* Channel Search Bar */}
+        <div className="channel-search-bar-container">
+          <h2 className="text-xl font-semibold mb-4">Search for Channel</h2>
+          <ReactSearchAutocomplete
+            items={channels}
+            onSelect={handleOnSelect}
+            onSearch={handleChannelSearch} // Update your handleChannelSearch function
+            inputSearchString={channelSearchQuery} // Input search string
+            autoFocus
+            formatResult={formatResult} // Format how each item is displayed
+            placeholder="Enter channel name"
+          />
+
+          
+          {/* Display search results for channels */}
+          {showAutocomplete && channelSearchQuery !== '' && (
+            <ul className="search-results">
+              {filteredChannels.map(channel => (
+                <li key={channel.id} className="autocomplete-item"> 
+                  <button onClick={() => handleNavigateToChannel(channel.name)}>{channel.name}</button>
+                </li>
+              ))}
+            </ul>
+          )}
+
+        </div>
+
 
         {isRedditSearchEnabled && (
           <div className="redditsearch w-full justify-center gap-4 mb-4">
@@ -371,28 +455,6 @@ useEffect(() => {
               </div>
             </div>
           )}
-
-          {/* Search Bar */}
-        <div className="channel-search-bar">
-          <input 
-            type="text" 
-            placeholder="Search for channels" 
-            value={searchQuery}
-            onChange={handleSearch}
-          />
-          
-          {/* Search Results */}
-          {searchQuery.trim() !== '' && searchResults.length > 0 && (
-            <ul>
-              {searchResults.map(channel => (
-                <li key={channel.id} onClick={() => handleChannelClick(channel.name)}>
-                  {channel.name}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
           
 
           <div className="posts-container">
@@ -403,7 +465,7 @@ useEffect(() => {
               id={post.id.toString()}
               content={post.content || ''}
               userId={post.userId ?? 0}
-              channel={post.channel || 'Unknown'}
+              channel={post.channelName || 'Unknown'}
               timestamp={post.timestamp}
               postType={post.postType || 'TEXT'}
               mediaUrl={post.mediaUrl}
@@ -442,7 +504,11 @@ useEffect(() => {
         </div>     
 
         {showCreatePostModal && (
-          <CreatePost onClose={handleCloseCreatePostModal} onPostCreated={handlePostCreated} />
+          <CreatePost onClose={handleCloseCreatePostModal} onPostCreated={handlePostCreated} channels={channels}/>
+        )}
+
+        {isCreateChannelModalOpen && (
+          <CreateChannel onClose={handleCloseCreateChannelModal} /> 
         )}
 
         </>

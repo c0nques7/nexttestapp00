@@ -31,9 +31,11 @@ export async function GET(request: NextRequest) {
         content: true,
         userId: true,
         channel: true,
+        channelName: true, // Add this line to include channelName in the query
         timestamp: true,
-        postType: true, // Ensure postType is included in the query
+        postType: true,
         mediaUrl: true,
+        contentProvider: true,
       },
       orderBy: {
         timestamp: 'asc',

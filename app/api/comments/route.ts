@@ -79,15 +79,12 @@ export async function GET() {
         orderBy: { timestamp: 'desc' },
       });
 
-      const commentsByPostId: { [key: string]: Comment[] } = {}; // Corrected type definition
-    
-    for (const comment of allComments) {
-      const postId = comment.postId.toString();
-      if (!commentsByPostId[postId]) {
-        commentsByPostId[postId] = [];
-      }
-      commentsByPostId[postId].push(comment);
-    }
+      const commentsByPostId = allComments.reduce((acc: { [key: string]: Comment[] }, comment: Comment) => {
+        const postId = comment.postId.toString();
+        acc[postId] = acc[postId] || [];
+        acc[postId].push(comment);
+        return acc;
+      }, {});
 
     return NextResponse.json({ data: commentsByPostId }); // Wrap data in a "data" object
   } catch (error) {
