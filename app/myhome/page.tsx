@@ -1,17 +1,32 @@
 'use client';
-import '@/app/styles/global.css';
-import { useEffect, useState, useRef, ButtonHTMLAttributes } from 'react';
-import PostCard from '../components/PostCard/postcard';
-import FinanceCard from '../components/FinanceCard/financecard';
-import { useRouter } from 'next/navigation';
-import CreatePost from '../components/CreatePost/createpost';
-import CreateChannel from '../components/CreateChannel/createchannel';
-import { PostType, ContentProvider } from '@prisma/client';
-import { RedditPostData, RedditApiResponse, Channel, Post } from '../lib/types';
-import { CardPositionsProvider, useCardPositions } from '@/app/context/cardPositionsContext';
-import M from 'materialize-css';
-import { ReactSearchAutocomplete } from 'react-search-autocomplete' // Import the library
 
+import '@/app/styles/global.css';
+import { ReactNode, useEffect, useState, useRef, ButtonHTMLAttributes } from 'react';
+import { useRouter } from 'next/navigation';
+import { PostType, ContentProvider } from '@prisma/client';
+import { RedditApiResponse, Channel, Post } from '../lib/types';
+import { CardPositionsProvider, useCardPositions } from '@/app/context/cardPositionsContext';
+import dynamic from 'next/dynamic';
+import { IoAddCircle, IoPencil } from "react-icons/io5";
+
+const Fab: React.FC<ButtonHTMLAttributes<HTMLButtonElement> & { icon: ReactNode }> = ({ onClick, icon, ...props }) => (
+  <button
+      className="fab"
+      onClick={onClick}
+      {...props}
+  >
+      {icon} 
+  </button>
+);
+
+const PostCard = dynamic(() => import('../components/PostCard/postcard'), { ssr: false });
+const FinanceCard = dynamic(() => import('../components/FinanceCard/financecard'), { ssr: false });
+const CreatePost = dynamic(() => import('../components/CreatePost/createpost'), { ssr: false });
+const CreateChannel = dynamic(() => import('../components/CreateChannel/createchannel'), { ssr: false });
+const ReactSearchAutocomplete = dynamic(
+  () => import('react-search-autocomplete').then((mod) => mod.ReactSearchAutocomplete),
+  { ssr: false } 
+);
 interface FetchPostsResponse {
   userPosts: {
     id: number;
@@ -71,64 +86,14 @@ export default function MyHomePage() {
   const [filteredChannels, setFilteredChannels] = useState<Channel[]>([]);
   const [showAutocomplete, setShowAutocomplete] = useState(false);
   
-  
-
-  const handleOpenCreatePostModal = () => {
-    setShowCreatePostModal(true);
-  };
-
-  const handleCloseCreatePostModal = () => {
-    setShowCreatePostModal(false);
-  };
-
-  const handlePostCreated = () => {
-    setShowCreatePostModal(false);
-  };
 
   useEffect(() => {
-    if (
-      typeof window !== 'undefined' &&
-      createChannelModalRef.current &&
-      !createChannelModalRef.current.classList.contains('modal')
-    ) {
-      const modalInstance = M.Modal.init(createChannelModalRef.current);
-
-      // Clean up the modal instance when the component unmounts
-      return () => {
-        if (modalInstance) {
-          modalInstance.destroy();
-        }
-      };
-    }
-  }, []);
-
-  useEffect(() => {
-    const initializeComponents = () => {
-      if (fabRef.current && typeof M.FloatingActionButton.init === "function") {
-        M.FloatingActionButton.init(fabRef.current, {
-          // ... (your Materialize options) ...
-        });
-      }
-  
-      if (
-        createChannelModalRef.current &&
-        !createChannelModalRef.current.classList.contains('modal')
-      ) {
-        const modalInstance = M.Modal.init(createChannelModalRef.current);
-        // Clean up the modal instance when the component unmounts
-        return () => {
-          if (modalInstance) {
-            modalInstance.destroy();
-          }
-        };
-      }
-    };
   
     const fetchUserPosts = async () => { 
       setIsLoading(true);
   
       try {
-        const response = await fetch('/api/fetchposts', { cache: 'no-store'}); // Fetch only user posts
+        const response = await fetch('/api/fetchposts'); // Fetch only user posts
         if (!response.ok) {
           throw new Error('Failed to fetch user posts');
         }
@@ -189,12 +154,30 @@ export default function MyHomePage() {
     };
   
     if (typeof window !== 'undefined') {
-      initializeComponents();
       fetchUserPosts();
       fetchTickers();
       fetchSettings();
     }
   }, []); 
+
+  useEffect(() => {
+    const fetchChannels = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch('/api/channels');
+        if (response.ok) {
+          const data = await response.json();
+          setChannels(data);
+        } else {
+          console.error('Failed to fetch channels:', response.status);
+        }
+      } catch (error) {
+        console.error('Error fetching channels:', error);
+      }
+    };
+
+    fetchChannels();
+  }, []);
 
   const fetchStockData = async () => {
     if (!symbol.trim()) {
@@ -230,6 +213,18 @@ export default function MyHomePage() {
     await fetchStockData();
     setIsLoading(false);
     setShowChart(true);
+  };
+
+  const handleOpenCreatePostModal = () => {
+    setShowCreatePostModal(true);
+  };
+
+  const handleCloseCreatePostModal = () => {
+    setShowCreatePostModal(false);
+  };
+
+  const handlePostCreated = () => {
+    setShowCreatePostModal(false);
   };
 
   const handleCloseCreateChannelModal = () => {
@@ -303,24 +298,7 @@ export default function MyHomePage() {
   
 
 
-  useEffect(() => {
-    const fetchChannels = async () => {
-      setIsLoading(true);
-      try {
-        const response = await fetch('/api/channels');
-        if (response.ok) {
-          const data = await response.json();
-          setChannels(data);
-        } else {
-          console.error('Failed to fetch channels:', response.status);
-        }
-      } catch (error) {
-        console.error('Error fetching channels:', error);
-      }
-    };
-
-    fetchChannels();
-  }, []);
+  
 
   const handleOnSelect = (item: Channel) => {
     handleNavigateToChannel(item.name);
@@ -380,28 +358,16 @@ export default function MyHomePage() {
         {/* Channel Search Bar */}
         <div className="channel-search-bar-container">
           <h2 className="text-xl font-semibold mb-4">Search for Channel</h2>
+          {typeof window!== 'undefined' && (
           <ReactSearchAutocomplete
             items={channels}
-            onSelect={handleOnSelect}
             onSearch={handleChannelSearch} // Update your handleChannelSearch function
             inputSearchString={channelSearchQuery} // Input search string
             autoFocus
             formatResult={formatResult} // Format how each item is displayed
             placeholder="Enter channel name"
           />
-
-          
-          {/* Display search results for channels */}
-          {showAutocomplete && channelSearchQuery !== '' && (
-            <ul className="search-results">
-              {filteredChannels.map(channel => (
-                <li key={channel.id} className="autocomplete-item"> 
-                  <button onClick={() => handleNavigateToChannel(channel.name)}>{channel.name}</button>
-                </li>
-              ))}
-            </ul>
-          )}
-
+        )}
         </div>
 
 
@@ -472,28 +438,22 @@ export default function MyHomePage() {
             {showChart && stockData && (
               <FinanceCard symbol={symbol} data={stockData} onAddTicker={handleAddTicker} />
             )}
-        </div>
+        </div>  
 
+          
+            <div>
+              {showCreatePostModal && (
+                <CreatePost onClose={handleCloseCreatePostModal} onPostCreated={handlePostCreated} channels={channels}/>
+              )}
 
-        
-
-        <div className="fixed-action-btn"> {/* Container for both buttons */}
-          <a className="btn-floating" onClick={handleOpenCreatePostModal}>
-            <i className="material-icons">post_add</i>
-          </a>
-          <a className="btn-floating" onClick={handleOpenCreateChannelModal}>
-            <i className="material-icons">add_to_queue</i>
-          </a>
-        </div>     
-
-        {showCreatePostModal && (
-          <CreatePost onClose={handleCloseCreatePostModal} onPostCreated={handlePostCreated} channels={channels}/>
-        )}
-
-        {isCreateChannelModalOpen && (
-          <CreateChannel onClose={handleCloseCreateChannelModal} /> 
-        )}
-
+              {isCreateChannelModalOpen && (
+                <CreateChannel onClose={handleCloseCreateChannelModal} /> 
+              )}
+            </div>
+            <div className='fab-container'>
+            <Fab onClick={handleOpenCreatePostModal} icon={<IoPencil />} />
+            <Fab onClick={handleOpenCreateChannelModal} icon={<IoAddCircle />} />
+            </div> 
         </>
         )}
       </div>
