@@ -1,14 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation'; 
+import { useParams } from 'next/navigation'; 
 import PostCard from '@/app/components/PostCard/postcard';
 import { Post } from '@/app/lib/types';
 import { PostType, ContentProvider } from '@prisma/client';
-
+import { CardPositionsProvider, useCardPositions } from '@/app/context/cardPositionsContext';
 function ChannelPage() {
-  const searchParams = useSearchParams();
-  const channelName = searchParams.get('channelName');
+  const params = useParams();
+  const channelName = params.channelName as string; // Get channelName from params
   const [channelPosts, setChannelPosts] = useState<Post[]>([]);
   const [expandedPostId, setExpandedPostId] = useState<number | null>(null);
   const [containerWidth, setContainerWidth] = useState(0);
@@ -42,6 +42,7 @@ function ChannelPage() {
   };
 
   return (
+    <CardPositionsProvider>
     <div>
       <h1>Channel: {channelName}</h1>
       <div className="posts-container">
@@ -63,6 +64,7 @@ function ChannelPage() {
         ))}
       </div>
     </div>
+    </CardPositionsProvider>
   );
 }
 

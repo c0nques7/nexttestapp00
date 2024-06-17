@@ -300,8 +300,9 @@ export default function MyHomePage() {
 
   
 
-  const handleOnSelect = (item: Channel) => {
-    handleNavigateToChannel(item.name);
+  const handleOnSelect = (item: unknown) => {
+    const channel = item as Channel
+    handleNavigateToChannel(channel.name);
   };
 
   const formatResult = (item: Channel) => {
@@ -362,6 +363,7 @@ export default function MyHomePage() {
           <ReactSearchAutocomplete
             items={channels}
             onSearch={handleChannelSearch} // Update your handleChannelSearch function
+            onSelect={handleOnSelect}
             inputSearchString={channelSearchQuery} // Input search string
             autoFocus
             formatResult={formatResult} // Format how each item is displayed
