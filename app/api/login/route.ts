@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     }
 
     // JWT Generation
-    const tokenPayload = { userId: user.id }; 
+    const tokenPayload = { userId: user.id, username: user.username }; 
     const token = jwt.sign(tokenPayload, JWT_SECRET!, { expiresIn: '1h' }); 
     console.log('Generated JWT:', token);
 

@@ -106,6 +106,7 @@ const handleCommentClick = (comment: Comment) => {
 };
 const [isDeleted, setIsDeleted] = useState(false);
 const [showDeleteCover, setShowDeleteCover] = useState(false);
+const { viewerUserId } = useUserContext();  
 
 const router = useRouter();
 
@@ -540,7 +541,6 @@ useEffect(() => {
     }
   }, [id, isFlipped]);
 
-  const { viewerUserId } = useUserContext();
   
 
 
@@ -672,14 +672,7 @@ return isDeleted ? null : (
               <>
                 <button disabled={isDeleteConfirmationOpen}>Edit</button>
                 <button disabled={isDeleteConfirmationOpen}>Share</button>
-                        {userId === parseInt( viewerUserId, 10) && ( 
-                <button 
-                  className="card-delete-button" 
-                  onClick={handleDeleteClick}
-                >
-                  Delete
-                </button>
-              )}
+                <button className="card-delete-button" onClick={handleDeleteClick}>Delete</button>        
               </>
             ) : (
               <div className="delete-confirmation-content">

@@ -1,27 +1,51 @@
-import React, { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from 'react';
+import Cookies from 'js-cookie';
+import jwt from 'jsonwebtoken';
 
 interface UserContextProps {
-  userId: string; // Existing property for the post's author ID
+  userId: string;
   setUserId: React.Dispatch<React.SetStateAction<string>>;
-  viewerUserId: string;  // New property for viewer's ID
-  setViewerUserId: React.Dispatch<React.SetStateAction<string>>; // To update viewer's ID
+  viewerUserId: string; 
+  setViewerUserId: React.Dispatch<React.SetStateAction<string>>;
+  username: string;       // Added for username
+  setUsername: React.Dispatch<React.SetStateAction<string>>; // To update username
 }
 
 const UserContext = createContext<UserContextProps>({
   userId: "",
   setUserId: () => {},
-  viewerUserId: "", // Initialize with an empty string
+  viewerUserId: "",
   setViewerUserId: () => {},
+  username: "",  // Initialize username to empty string
+  setUsername: () => {},
 });
 
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [userId, setUserId] = useState<string>("");
-  const [viewerUserId, setViewerUserId] = useState<string>(""); // New state
+  const [viewerUserId, setViewerUserId] = useState<string>("");
+  const [username, setUsername] = useState<string>(""); // State for username
+
+  useEffect(() => {
+    const token = Cookies.get('token');
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string, username: string };
+        setUserId(decoded.userId);
+        setViewerUserId(decoded.userId); 
+        setUsername(decoded.username); // Set username from JWT
+      } catch (error) {
+        console.error('Error verifying JWT:', error);
+        // Handle token verification errors (e.g., logout user)
+      }
+    }
+  }, [setUserId, setViewerUserId, setUsername]); // Include dependencies
 
   return (
-    <UserContext.Provider value={{ userId, setUserId, viewerUserId, setViewerUserId }}>
+    <UserContext.Provider
+      value={{ userId, setUserId, viewerUserId, setViewerUserId, username, setUsername }}
+    >
       {children}
     </UserContext.Provider>
   );
