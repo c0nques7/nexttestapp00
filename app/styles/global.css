@@ -43,7 +43,6 @@ body {
 .channel-search-bar-container{
   position: relative;
   width: 50%;
-  top: 50%;
   right: -25%;
   background-color: #e0e5ec; /* Light background color */
   border-radius: 25px; /* Rounded corners */

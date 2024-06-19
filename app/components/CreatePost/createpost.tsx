@@ -70,7 +70,12 @@ const CreatePost = ({ onClose, onPostCreated, channels }: CreatePostProps) => {
     }
   };
 
-
+  useEffect(() => {
+    if (shouldReload) {
+        router.refresh();
+        setShouldReload(false); // Reset the flag to prevent multiple reloads
+    }
+}, [shouldReload, router]);
 
 
 

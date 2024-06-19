@@ -17,6 +17,7 @@ import { Comment } from '@/app/lib/types';
 import { useRouter } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import React from 'react';
+import { useUserContext } from "@/app/context/userContext";
 
 
 const CardSkeleton = () => (
@@ -538,6 +539,8 @@ useEffect(() => {
       fetchComments();
     }
   }, [id, isFlipped]);
+
+  const { viewerUserId } = useUserContext();
   
 
 
@@ -638,7 +641,7 @@ return isDeleted ? null : (
               >
                 <MdOpenWith size={30} />
               </div>
-              {!isDeleteConfirmationOpen && (
+              {!isDeleteConfirmationOpen && !isFlipped &&(
               <button className="card-menu-button" onClick={() => setIsCardMenuOpen(!isCardMenuOpen)}>
               <Icon path={mdiMenu} size={0.6} />
             </button>
@@ -659,8 +662,8 @@ return isDeleted ? null : (
             {renderPostContent()}
           </div>
         )}
-
-<div 
+          {!isFlipped && (
+          <div 
             className={`card-menu-slider ${isDeleteConfirmationOpen ? 'delete-confirmation' : ''} ${isCardMenuOpen ? 'open' : ''}`}
             style={{ height: isDeleteConfirmationOpen ? '100%' : isCardMenuOpen ? '30%' : '0px' }} 
           > 
@@ -669,7 +672,14 @@ return isDeleted ? null : (
               <>
                 <button disabled={isDeleteConfirmationOpen}>Edit</button>
                 <button disabled={isDeleteConfirmationOpen}>Share</button>
-                <button className="card-delete-button" onClick={handleDeleteClick}>Delete</button>
+                        {userId === parseInt( viewerUserId, 10) && ( 
+                <button 
+                  className="card-delete-button" 
+                  onClick={handleDeleteClick}
+                >
+                  Delete
+                </button>
+              )}
               </>
             ) : (
               <div className="delete-confirmation-content">
@@ -679,6 +689,8 @@ return isDeleted ? null : (
               </div>
             )}
           </div>
+
+          )}
       </div>
         
       {isResizing && <div className="preview-outline" />} 

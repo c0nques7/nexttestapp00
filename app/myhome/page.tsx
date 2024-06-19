@@ -8,7 +8,7 @@ import { RedditApiResponse, Channel, Post } from '../lib/types';
 import { CardPositionsProvider, useCardPositions } from '@/app/context/cardPositionsContext';
 import dynamic from 'next/dynamic';
 import { IoAddCircle, IoPencil } from "react-icons/io5";
-
+import { BrowserRouter } from'react-router-dom';
 const Fab: React.FC<ButtonHTMLAttributes<HTMLButtonElement> & { icon: ReactNode }> = ({ onClick, icon, ...props }) => (
   <button
       className="fab"

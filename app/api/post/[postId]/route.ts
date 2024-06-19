@@ -68,7 +68,6 @@ export async function DELETE(
     });
     
     console.log('Post deleted successfully (ID:', postId, ')');
-    revalidatePath('/myhome');
     return NextResponse.json(
       { message: 'Post deleted successfully' },
       { status: 200 },
