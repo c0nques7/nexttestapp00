@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
-import { revalidatePath } from 'next/cache';
+
 
 
 const JWT_SECRET = process.env.JWT_SECRET;

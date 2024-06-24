@@ -136,47 +136,32 @@ const CreatePost = ({ onClose, onPostCreated, channels }: CreatePostProps) => {
           </div>
 
           <div>
-                <label htmlFor="postDestination">Post To:</label>
-                <select
-                    id="postDestination"
-                    value={postDestination}
-                    onChange={(e) => setPostDestination(e.target.value as 'SELF' | 'CHANNEL')}
-                    disabled={isPrivate}
-                >
-                    <option value="SELF">Self</option>
-                    <option value="CHANNEL">Channel</option>
-                </select>
-            </div>
-
-            {/* Conditionally render the channel input */}
-           
-            {postDestination === 'CHANNEL' && (
-                <div>
-                    <label htmlFor="channel">Channel:</label>
-                    <select
-                        id="channel"
-                        value={selectedChannel ? selectedChannel.id : ''} 
-                        onChange={(e) => {
-                            const channelId = Number(e.target.value);
-                            const selected = channels.find(c => c.id === channelId);
-                            setSelectedChannel(selected ? { ...selected, isCorpAccount: selected.isCorpAccount ?? false } : null);
-                        }}
-                    >
-                        <option value="">Select a Channel</option>
-                        {channels.map(channel => (
-                            <option key={channel.id} value={channel.id}>
-                                {channel.name}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-            )}
-                <button type="submit">Create Post</button>
-            </form>
-
-            {error && <p className="error-message">{error}</p>}
-            </div>
+          <label htmlFor="channel">Channel:</label>
+          <select
+            id="channel"
+            value={selectedChannel ? selectedChannel.id : ''}
+            onChange={(e) => {
+              const channelId = Number(e.target.value);
+              const selected = channels.find(c => c.id === channelId);
+              setSelectedChannel(selected ? { ...selected, isCorpAccount: selected.isCorpAccount ?? false } : null);
+            }}
+            required  // Make channel selection mandatory
+          >
+            <option value="">Select a Channel</option>
+            {channels.map(channel => (
+              <option key={channel.id} value={channel.id}>
+                {channel.name}
+              </option>
+            ))}
+          </select>
         </div>
-    );
+
+        <button type="submit">Create Post</button>
+      </form>
+
+      {error && <p className="error-message">{error}</p>}
+    </div>
+  </div>
+);
 };
 export default CreatePost;
