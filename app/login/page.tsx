@@ -6,6 +6,7 @@ import { Button } from '../components/button';
 import Link from 'next/link';
 import { ExclamationCircleIcon } from '@heroicons/react/24/outline';
 import { ArrowRightIcon } from '@heroicons/react/20/solid';
+import { CheckCircleIcon } from '@heroicons/react/24/solid';
 
 const LoginForm: React.FC = () => {
   const router = useRouter();
@@ -13,6 +14,8 @@ const LoginForm: React.FC = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [buttonText, setButtonText] = useState('Log in');
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -27,12 +30,15 @@ const LoginForm: React.FC = () => {
       });
 
       if (response.ok) {
-        // Successful login
         const data = await response.json();
         console.log('Login successful:', data);
-        //Save JWT and move to myHome page
-        localStorage.setItem('token', data.jwt);
-        router.push('/myhome'); 
+
+        // Update button text and delay navigation
+        setButtonText('Login Successful!'); 
+        setTimeout(() => {
+          localStorage.setItem('token', data.jwt);
+          router.push('/myhome'); 
+        }, 1000); // 1-second delay (adjust as needed)
       } else {
         const errorData = await response.json();
         setError(errorData.error || 'Login failed. Please check your credentials.');
@@ -88,6 +94,14 @@ const LoginForm: React.FC = () => {
             </div>
           </div>
 
+          {/* Success Message */}
+          {successMessage && (
+            <div className="flex items-center text-green-500 mt-2">
+              <CheckCircleIcon className="mr-1 h-5 w-5" /> {/* Success icon */}
+              <p className="text-sm">{successMessage}</p>
+            </div>
+          )}
+
           {/* Error Message */}
           {error && (
             <div className="flex items-center text-red-500 mt-2">
@@ -99,7 +113,7 @@ const LoginForm: React.FC = () => {
 
         {/* Login Button */}
         <Button type="submit" className="neumorphic-button login" disabled={isLoading}>
-          {isLoading ? 'Logging in...' : 'Log in '} 
+          {isLoading ? 'Logging in...' : buttonText}
           <ArrowRightIcon className="ml-2 h-5 w-5 text-gray-50" />
         </Button>
 
